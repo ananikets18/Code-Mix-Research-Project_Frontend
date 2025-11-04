@@ -10,6 +10,8 @@
 [build.environment]
   NODE_VERSION = "18"
   NPM_FLAGS = "--legacy-peer-deps"
+  CI = "false"
+
 
 [[headers]]
   for = "/*"

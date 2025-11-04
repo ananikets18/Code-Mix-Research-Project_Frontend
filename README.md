@@ -1,8 +1,82 @@
-# Getting Started with Create React App
+# Multilingual NLP Analyzer - Frontend
+
+A modern React + TailwindCSS frontend for testing the Multilingual NLP Analysis API.
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-## Available Scripts
+## 🎯 Quick Start
+
+### Prerequisites
+
+**IMPORTANT:** The backend API must be running first!
+
+```bash
+# In the parent directory (NLP-project/)
+python api.py
+```
+
+The API should be running on `http://localhost:8000`
+
+### Run the Frontend
+
+```bash
+# Install dependencies (first time only)
+npm install
+
+# Start the development server
+npm start
+```
+
+Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+
+## ✨ Features
+
+- 🌐 **Language Detection** - 60+ languages including code-mixed (Hinglish, etc.)
+- 😊 **Sentiment Analysis** - Positive/Negative/Neutral with confidence scores
+- 🚫 **Profanity Detection** - 10 languages with severity levels
+- ⚠️ **Toxicity Analysis** - 6 categories of toxic content
+- 🌍 **Translation** - Auto-detect and translate between languages
+- 🔤 **Romanized Conversion** - Convert romanized Indic text to native script
+- 📊 **Domain Detection** - Technical, Financial, Medical domains
+
+## 🎨 UI Features
+
+### Three Tabs:
+
+1. **📊 Analyze** - Comprehensive NLP analysis
+   - Language detection with romanized/code-mixed flags
+   - Sentiment analysis
+   - Profanity detection
+   - Toxicity scores
+   - Automatic translation
+   - Compact/Verbose response modes
+
+2. **🌍 Translate** - Translation service
+   - Auto-detect source language
+   - Multiple target languages
+   - Automatic romanized conversion
+
+3. **🔤 Convert** - Romanized-to-Native conversion
+   - Hybrid conversion (preserves English)
+   - Token-level statistics
+   - 6 Indian languages supported
+
+### Quick Examples
+
+Click pre-filled example buttons:
+- **English** - Clean English text
+- **Hinglish** - Code-mixed Hindi-English
+- **Romanized** - Romanized Indic text
+- **Profanity** - Test profanity filtering
+- **Marathi** - Native Devanagari script
+
+## 📱 API Endpoints
+
+- `POST /analyze` - Comprehensive analysis
+- `POST /translate` - Translation
+- `POST /convert` - Romanized-to-native conversion
+
+## 🛠️ Available Scripts
 
 In the project directory, you can run:
 

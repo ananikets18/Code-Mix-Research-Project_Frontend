@@ -3,6 +3,7 @@ import axios from "axios";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import InfoBanner from "../components/InfoBanner";
+import GitHubFloatingModal from "../components/GitHubFloatingModal";
 /**
  * StatusPage - Dedicated page showing backend status, model info, and Redis status
  */
@@ -107,6 +108,10 @@ const StatusPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-light dark:bg-gradient-dark text-gray-900 dark:text-white transition-colors duration-300">
+      
+      {/* GitHub Floating Modal */}
+      <GitHubFloatingModal />
+      
       <Header />
 
       <main className="container mx-auto px-4 mt-3 sm:px-3 md:px-5 lg:px-6 py-3 sm:py-4 md:py-6">

@@ -10,6 +10,7 @@ import ErrorDisplay from '../components/ErrorDisplay';
 import NetworkStatus from '../components/NetworkStatus';
 import LoadingOverlay from '../components/LoadingOverlay';
 import InfoBanner from '../components/InfoBanner';
+import GitHubFloatingModal from '../components/GitHubFloatingModal';
 import { sanitizeTextInput } from '../utils/sanitize';
 import Analytics, { trackEvent } from '../utils/analytics';
 import { ErrorTracking } from '../utils/errorTracking';
@@ -442,6 +443,8 @@ function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-light dark:bg-gradient-dark text-gray-900 dark:text-white transition-colors duration-300">
 
+      {/* GitHub Floating Modal */}
+      <GitHubFloatingModal />
       
       {/* Network Status Notification */}
       <NetworkStatus />

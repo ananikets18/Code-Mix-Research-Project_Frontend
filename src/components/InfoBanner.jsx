@@ -14,8 +14,11 @@ const InfoBanner = () => {
       <div className="relative flex items-center justify-center w-full z-10">
         <div className="flex flex-col sm:flex-row items-center justify-center gap-2 w-full max-w-4xl">
           <p className="text-xs sm:text-sm md:text-base font-medium flex items-center justify-center gap-1.5 text-center flex-wrap">
-            <span className="hidden sm:inline">ℹ️</span>
-            <span className="whitespace-nowrap">For more info about this Project, Check out our</span>
+            <span className="hidden sm:inline">🚀</span>
+            <span className="whitespace-nowrap">
+              Curious how it all works? Dive into the code and see the magic on
+              our at 
+            </span>
             <a
               href="https://github.com/ananikets18/Code-Mix-for-social-media---Frontend"
               target="_blank"

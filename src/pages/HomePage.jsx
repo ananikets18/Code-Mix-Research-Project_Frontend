@@ -77,7 +77,7 @@ function HomePage() {
     english: "Hello! How are you doing today? I hope you're having a wonderful day!",
     hindi: "नमस्ते! आप कैसे हैं? मुझे आशा है कि आपका दिन अच्छा जा रहा है!",
     profane: "This is a test with some inappropriate language that should be detected.",
-    mixed: "Guys aaj hamara presentation hein, so be ready with your presentations."
+    mixed: "You know, we have to go to college today because आज हमारी रिसर्च प्रेज़ेंटेशन है।"
   };
 
   // API Functions

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Code-Mix Analyzer</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <h2>Code-Mix Analyzer</h2>
+      <div class="status-indicator" id="statusIndicator"></div>
+    </div>
+
+    <div class="content">
+      <div class="setting-item">
+        <label class="switch">
+          <input type="checkbox" id="enableExtension" checked>
+          <span class="slider round"></span>
+        </label>
+        <span>Enable Analysis</span>
+      </div>
+
+      <div class="setting-item">
+        <label class="switch">
+          <input type="checkbox" id="blurToxic" checked>
+          <span class="slider round"></span>
+        </label>
+        <span>Blur Toxic Content</span>
+      </div>
+
+      <div class="setting-item-slider">
+        <label for="toxicityThreshold">Toxicity Threshold: <span id="thresholdValue">70</span>%</label>
+        <input type="range" id="toxicityThreshold" min="0" max="100" value="70" class="slider-input">
+        <small>Hide posts with toxicity above this level</small>
+      </div>
+
+      <div class="stats">
+        <div class="stat-box">
+          <span class="stat-value" id="analyzedCount">0</span>
+          <span class="stat-label">Analyzed</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-value" id="toxicCount">0</span>
+          <span class="stat-label">Toxic</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <a href="#" id="openDashboard">Open Website</a>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+
+</html>

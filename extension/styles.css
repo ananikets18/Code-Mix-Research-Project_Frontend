@@ -1,0 +1,320 @@
+/* Global Font Family */
+* {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+}
+
+.codemix-indicator-container {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    display: flex;
+    gap: 4px;
+    z-index: 9999;
+}
+
+.codemix-indicator {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    cursor: help;
+}
+
+.codemix-translate-btn {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.codemix-translate-btn:hover {
+    transform: scale(1.1);
+}
+
+.codemix-indicator.loading {
+    background: #f8f9fa;
+}
+
+.codemix-indicator.safe {
+    background: #d4edda;
+    border: 1px solid #c3e6cb;
+}
+
+.codemix-indicator.toxic {
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+    animation: pulse 2s infinite;
+}
+
+.codemix-indicator.error {
+    background: #e2e3e5;
+    border: 1px solid #d6d8db;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+    }
+}
+
+/* Sentiment Color-Coding */
+.codemix-sentiment-positive {
+    border-left: 4px solid #28a745 !important;
+    background: linear-gradient(to right, rgba(40, 167, 69, 0.05), transparent) !important;
+}
+
+.codemix-sentiment-neutral {
+    border-left: 4px solid #ffc107 !important;
+    background: linear-gradient(to right, rgba(255, 193, 7, 0.05), transparent) !important;
+}
+
+.codemix-sentiment-negative {
+    border-left: 4px solid #dc3545 !important;
+    background: linear-gradient(to right, rgba(220, 53, 69, 0.05), transparent) !important;
+}
+
+/* Detailed Analysis Panel */
+.codemix-detail-panel {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 500px;
+    max-width: 90vw;
+    max-height: 80vh;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    z-index: 999999;
+    overflow: hidden;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -40%);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+}
+
+.codemix-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    background: #4f46e5;
+    color: white;
+}
+
+.codemix-panel-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.codemix-panel-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background 0.2s;
+}
+
+.codemix-panel-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.codemix-panel-content {
+    padding: 20px;
+    max-height: calc(80vh - 60px);
+    overflow-y: auto;
+}
+
+.codemix-panel-section {
+    margin-bottom: 20px;
+}
+
+.codemix-panel-section h4 {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.codemix-panel-section p {
+    margin: 8px 0;
+    color: #6b7280;
+}
+
+.codemix-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    background: #e0e7ff;
+    color: #4f46e5;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    margin-left: 8px;
+}
+
+/* Sentiment Bars */
+.codemix-sentiment-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.codemix-bar {
+    display: grid;
+    grid-template-columns: 80px 1fr 60px;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+}
+
+.codemix-bar span:first-child {
+    font-weight: 500;
+    color: #374151;
+}
+
+.codemix-bar span:last-child {
+    text-align: right;
+    color: #6b7280;
+    font-size: 12px;
+}
+
+.codemix-bar-fill {
+    height: 8px;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.codemix-bar-positive {
+    background: #28a745;
+}
+
+.codemix-bar-neutral {
+    background: #ffc107;
+}
+
+.codemix-bar-negative {
+    background: #dc3545;
+}
+
+/* Toxicity Grid */
+.codemix-toxicity-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    font-size: 13px;
+}
+
+.codemix-toxicity-grid div {
+    padding: 8px;
+    background: #f9fafb;
+    border-radius: 6px;
+    color: #374151;
+}
+
+.codemix-toxicity-grid strong {
+    color: #1f2937;
+}
+
+/* Translation Tooltip */
+.codemix-translation-tooltip {
+    position: absolute;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 0;
+    z-index: 999999;
+    max-width: 400px;
+    animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.codemix-tooltip-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: #f3f4f6;
+    border-bottom: 1px solid #e5e7eb;
+    border-radius: 8px 8px 0 0;
+    font-weight: 600;
+    font-size: 14px;
+    color: #374151;
+}
+
+.codemix-tooltip-close {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: #6b7280;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.codemix-tooltip-close:hover {
+    background: #e5e7eb;
+}
+
+.codemix-tooltip-content {
+    padding: 16px;
+    color: #1f2937;
+    line-height: 1.6;
+    font-size: 14px;
+}

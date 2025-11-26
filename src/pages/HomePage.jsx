@@ -75,13 +75,34 @@ function HomePage() {
 
   // Example texts for quick testing
   const exampleTexts = {
-    english:
+    english: [
       "Hello! How are you doing today? I hope you're having a wonderful day!",
-    hindi: "नमस्ते! आप कैसे हैं? मुझे आशा है कि आपका दिन अच्छा जा रहा है!",
-    profane:
+      "The quick brown fox jumps over the lazy dog.",
+      "Artificial Intelligence is transforming the way we live and work.",
+      "Could you please help me understand this complex scientific theory?",
+      "I am planning to travel to Japan next summer for a vacation.",
+    ],
+    hindi: [
+      "नमस्ते! आप कैसे हैं? मुझे आशा है कि आपका दिन अच्छा जा रहा है!",
+      "भारत एक विविधतापूर्ण देश है जहाँ कई भाषाएँ बोली जाती हैं।",
+      "आज का मौसम बहुत सुहावना है, चलो कहीं घूमने चलते हैं।",
+      "मुझे भारतीय खाना बहुत पसंद है, खासकर पनीर बटर मसाला।",
+      "क्या आप मुझे निकटतम रेलवे स्टेशन का रास्ता बता सकते हैं?",
+    ],
+    profane: [
       "This is a test with some inappropriate language that should be detected.",
-    mixed:
+      "You are such a stupid idiot, I can't believe you did that.",
+      "Shut the hell up and get out of my face right now.",
+      "This garbage software is completely useless and broken.",
+      "I hate you so much, you are the worst person ever.",
+    ],
+    mixed: [
       "You know, we have to go to college today because आज हमारी रिसर्च प्रेज़ेंटेशन है।",
+      "Main aaj bahut busy hoon, so I cannot come to the party tonight.",
+      "Please mujhe wo file send kar do, I need it for my project submission.",
+      "Zindagi mein ups and downs toh aate rehte hain, just stay positive.",
+      "Kya tum kal free ho? We can go for a movie together.",
+    ],
   };
 
   // API Functions
@@ -624,16 +645,16 @@ function HomePage() {
                         <div className="flex flex-wrap">
                           {(result.language.composition?.is_code_mixed ||
                             result.language.is_code_mixed) && (
-                            <span className="text-xs px-2 py-1 rounded-full bg-secondary-100 dark:bg-secondary-900/40 text-secondary-700 dark:text-secondary-300 border border-secondary-300 dark:border-secondary-700">
-                              🔄 Code-Mixed
-                            </span>
-                          )}
+                              <span className="text-xs px-2 py-1 rounded-full bg-secondary-100 dark:bg-secondary-900/40 text-secondary-700 dark:text-secondary-300 border border-secondary-300 dark:border-secondary-700">
+                                🔄 Code-Mixed
+                              </span>
+                            )}
                           {(result.language.language_info?.is_romanized ||
                             result.language.is_romanized) && (
-                            <span className="text-xs px-2 py-1 rounded-full bg-warning-100 dark:bg-warning-900/40 text-warning-700 dark:text-warning-300 border border-warning-300 dark:border-warning-700">
-                              🔤 Romanized
-                            </span>
-                          )}
+                              <span className="text-xs px-2 py-1 rounded-full bg-warning-100 dark:bg-warning-900/40 text-warning-700 dark:text-warning-300 border border-warning-300 dark:border-warning-700">
+                                🔤 Romanized
+                              </span>
+                            )}
                         </div>
                       </div>
                     )}
@@ -698,13 +719,12 @@ function HomePage() {
                               return (
                                 <>
                                   <div
-                                    className={`h-2 rounded-full ${
-                                      safetyScoreSafe >= 90
-                                        ? "bg-success-500"
-                                        : safetyScoreSafe >= 70
+                                    className={`h-2 rounded-full ${safetyScoreSafe >= 90
+                                      ? "bg-success-500"
+                                      : safetyScoreSafe >= 70
                                         ? "bg-warning-500"
                                         : "bg-error-500"
-                                    }`}
+                                      }`}
                                     style={{ width: `${safetyScoreSafe}%` }}
                                   ></div>
                                 </>

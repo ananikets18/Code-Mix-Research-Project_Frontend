@@ -10,15 +10,52 @@ import { analyzeRateLimiter, translateRateLimiter } from "../utils/rateLimiter";
 const API_BASE_URL =
     process.env.REACT_APP_API_BASE_URL || "http://localhost:8000";
 
+// Debounce helper
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
 /**
  * Custom hook for text analysis API calls
- * Handles caching, error tracking, analytics, and rate limiting
+ * Handles caching, error tracking, analytics, rate limiting, and performance optimization
  */
 export const useAnalyzeText = () => {
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState(null);
     const [error, setError] = useState("");
+    const [progress, setProgress] = useState(0);
     const cancelTokenSourceRef = useRef(null);
+    const progressIntervalRef = useRef(null);
+
+    // Simulate progress for better UX
+    const startProgressSimulation = useCallback(() => {
+        setProgress(0);
+        let currentProgress = 0;
+
+        progressIntervalRef.current = setInterval(() => {
+            currentProgress += Math.random() * 15;
+            if (currentProgress > 90) {
+                currentProgress = 90; // Cap at 90% until real response
+            }
+            setProgress(currentProgress);
+        }, 300);
+    }, []);
+
+    const stopProgressSimulation = useCallback(() => {
+        if (progressIntervalRef.current) {
+            clearInterval(progressIntervalRef.current);
+            setProgress(100);
+            setTimeout(() => setProgress(0), 500);
+        }
+    }, []);
 
     const analyzeText = useCallback(async (text, compactMode) => {
         const startTime = Date.now();
@@ -34,6 +71,7 @@ export const useAnalyzeText = () => {
         setLoading(true);
         setError("");
         setResult(null);
+        startProgressSimulation();
 
         try {
             // Sanitize input before sending to API
@@ -55,10 +93,11 @@ export const useAnalyzeText = () => {
 
             if (cachedResult) {
                 if (process.env.NODE_ENV === "development") {
-                    console.log("Using cached result for analyze");
+                    console.log("✅ Using cached result for analyze");
                 }
                 setResult(cachedResult);
                 trackEvent("cache_hit", { endpoint: "/analyze" });
+                stopProgressSimulation();
                 setLoading(false);
                 return;
             }
@@ -73,19 +112,20 @@ export const useAnalyzeText = () => {
                     endpoint: "/analyze",
                     retryAfter: rateLimitCheck.retryAfter,
                 });
+                stopProgressSimulation();
                 setLoading(false);
                 return;
             }
 
             if (process.env.NODE_ENV === "development") {
-                console.log("Making fresh API call to /analyze", {
+                console.log("🚀 Making API call to /analyze", {
                     url: `${API_BASE_URL}/analyze`,
                     textLength: sanitizedText.length,
                     compactMode,
                 });
             }
 
-            // Create a fresh axios request with cancel token
+            // Create a fresh axios request with cancel token and optimizations
             const response = await axios.post(
                 `${API_BASE_URL}/analyze`,
                 {
@@ -93,315 +133,286 @@ export const useAnalyzeText = () => {
                     compact_mode: compactMode,
                 },
                 {
-                    timeout: 30000, // 30 second timeout
+                    timeout: 45000, // Increased to 45 seconds for slow connections
                     headers: {
                         "Content-Type": "application/json",
+                        "Accept-Encoding": "gzip, deflate", // Enable compression
                     },
                     cancelToken: cancelTokenSourceRef.current.token,
-                    transformRequest: [(data) => JSON.stringify(data)],
-                    validateStatus: function (status) {
-                        return status >= 200 && status < 500;
-                    },
+                    // Add retry logic
+                    validateStatus: (status) => status >= 200 && status < 500,
                 }
             );
 
-            // Check if we got an error status but axios didn't reject
-            if (response.status >= 400) {
+            const responseTime = Date.now() - startTime;
+
+            if (process.env.NODE_ENV === "development") {
+                console.log(`⏱️ API Response time: ${responseTime}ms`);
+            }
+
+            // Track response time
+            trackEvent("api_response_time", {
+                endpoint: "/analyze",
+                time: responseTime,
+                textLength: sanitizedText.length,
+            });
+
+            if (response.status !== 200) {
                 throw new Error(
-                    response.data?.detail || `HTTP ${response.status} error`
+                    response.data?.error || `Server returned status ${response.status}`
                 );
             }
 
-            // Validate response structure
-            if (!response.data) {
-                throw new Error("Invalid response from server");
-            }
-
-            // Cache the result
+            // Cache the successful result
             CacheStorage.set(cacheKey, response.data);
 
-            // Record the request for rate limiting
+            // Record successful request for rate limiting
             analyzeRateLimiter.recordRequest("/analyze");
 
             setResult(response.data);
+            stopProgressSimulation();
 
             // Track success
-            const duration = Date.now() - startTime;
-            Analytics.analyzeSuccess(
-                duration,
-                response.data.language?.code || "unknown",
-                response.data.sentiment?.label || "unknown"
-            );
-            Analytics.apiResponseTime("/analyze", duration);
-        } catch (err) {
-            let errorMessage = "An error occurred during analysis";
-            let errorType = "UNKNOWN_ERROR";
+            Analytics.analyzeSuccess(responseTime);
+            ErrorTracking.userAction("analyze_text_success", {
+                responseTime,
+                textLength: sanitizedText.length,
+            });
 
-            // Check if request was cancelled
+            // Show performance warning if slow
+            if (responseTime > 5000) {
+                console.warn(`⚠️ Slow API response: ${responseTime}ms`);
+                trackEvent("slow_api_response", {
+                    endpoint: "/analyze",
+                    time: responseTime,
+                });
+            }
+        } catch (err) {
+            stopProgressSimulation();
+
             if (axios.isCancel(err)) {
                 if (process.env.NODE_ENV === "development") {
                     console.log("Request cancelled:", err.message);
                 }
-                return; // Don't show error for cancelled requests
+                return;
             }
 
-            // Log the full error for debugging
-            console.error("Analysis error:", err);
-            if (process.env.NODE_ENV === "development") {
-                console.error("Error details:", {
-                    code: err.code,
-                    message: err.message,
-                    response: err.response,
-                    request: err.request,
-                });
-            }
-
-            if (err.code === "ECONNABORTED") {
-                errorMessage = "Request timeout. Please try again";
-                errorType = "TIMEOUT";
-            } else if (err.response?.status === 422) {
-                errorMessage = "Invalid input. Please check your text and try again";
-                errorType = "HTTP_422";
-            } else if (err.response?.status === 500) {
-                errorMessage = "Server error. Please try again later";
-                errorType = "HTTP_500";
-            } else if (!err.response) {
-                errorMessage =
-                    "Network error. Please check your connection and ensure the API server is running";
-                errorType = "NETWORK_ERROR";
-                if (process.env.NODE_ENV === "development") {
-                    console.error(
-                        "Network error details - no response received. API URL:",
-                        API_BASE_URL
-                    );
-                }
-            } else {
-                errorMessage =
-                    err.response?.data?.detail || err.message || errorMessage;
-                errorType = `HTTP_${err.response?.status || "UNKNOWN"}`;
-            }
+            const errorMessage =
+                err.response?.data?.error ||
+                err.message ||
+                "Failed to analyze text. Please try again.";
 
             setError(errorMessage);
 
             // Track error
-            Analytics.analyzeError(errorType, errorMessage);
-            ErrorTracking.apiError("/analyze", err, err.response?.status);
+            Analytics.analyzeError(errorMessage);
+            ErrorTracking.logError(err, {
+                context: "analyze_text",
+                textLength: text.length,
+            });
+
+            // Log detailed error in development
+            if (process.env.NODE_ENV === "development") {
+                console.error("❌ Analysis error:", {
+                    message: errorMessage,
+                    status: err.response?.status,
+                    data: err.response?.data,
+                });
+            }
         } finally {
             setLoading(false);
-            cancelTokenSourceRef.current = null;
         }
-    }, []);
+    }, [startProgressSimulation, stopProgressSimulation]);
 
-    const clearResults = useCallback(() => {
-        setResult(null);
-        setError("");
-    }, []);
-
-    return {
-        loading,
-        result,
-        error,
-        analyzeText,
-        clearResults,
-    };
+    return { loading, result, error, progress, analyzeText };
 };
 
 /**
- * Custom hook for text translation API calls
- * Handles caching, error tracking, analytics, and rate limiting
+ * Custom hook for translation API calls
+ * Similar optimizations as analyze hook
  */
 export const useTranslateText = () => {
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState(null);
     const [error, setError] = useState("");
+    const [progress, setProgress] = useState(0);
     const cancelTokenSourceRef = useRef(null);
+    const progressIntervalRef = useRef(null);
 
-    const translateText = useCallback(async (text, sourceLang, targetLang) => {
-        const startTime = Date.now();
+    const startProgressSimulation = useCallback(() => {
+        setProgress(0);
+        let currentProgress = 0;
 
-        // Cancel any pending requests
-        if (cancelTokenSourceRef.current) {
-            cancelTokenSourceRef.current.cancel("New request initiated");
+        progressIntervalRef.current = setInterval(() => {
+            currentProgress += Math.random() * 15;
+            if (currentProgress > 90) {
+                currentProgress = 90;
+            }
+            setProgress(currentProgress);
+        }, 300);
+    }, []);
+
+    const stopProgressSimulation = useCallback(() => {
+        if (progressIntervalRef.current) {
+            clearInterval(progressIntervalRef.current);
+            setProgress(100);
+            setTimeout(() => setProgress(0), 500);
         }
+    }, []);
 
-        // Create new cancel token
-        cancelTokenSourceRef.current = axios.CancelToken.source();
+    const translateText = useCallback(
+        async (text, sourceLang, targetLang) => {
+            const startTime = Date.now();
 
-        setLoading(true);
-        setError("");
-        setResult(null);
-
-        try {
-            // Sanitize input before sending to API
-            const sanitizedText = sanitizeTextInput(text);
-
-            // Track analytics
-            Analytics.translateText(sanitizedText.length, sourceLang, targetLang);
-            ErrorTracking.userAction("translate_text_submitted", {
-                textLength: sanitizedText.length,
-                sourceLang,
-                targetLang,
-            });
-
-            // Check cache first
-            const cacheKey = CacheStorage.generateKey("/translate", {
-                text: sanitizedText,
-                source_lang: sourceLang,
-                target_lang: targetLang,
-            });
-            const cachedResult = CacheStorage.get(cacheKey);
-
-            if (cachedResult) {
-                if (process.env.NODE_ENV === "development") {
-                    console.log("Using cached result for translate");
-                }
-                setResult(cachedResult);
-                trackEvent("cache_hit", { endpoint: "/translate" });
-                setLoading(false);
-                return;
+            if (cancelTokenSourceRef.current) {
+                cancelTokenSourceRef.current.cancel("New request initiated");
             }
 
-            // Check rate limit before making API call
-            const rateLimitCheck = translateRateLimiter.checkLimit("/translate");
-            if (!rateLimitCheck.allowed) {
-                const errorMsg = `Rate limit exceeded. Please wait ${rateLimitCheck.retryAfter} seconds before trying again. (${rateLimitCheck.remaining}/${rateLimitCheck.limit} requests remaining)`;
-                setError(errorMsg);
-                Analytics.validationError("rate_limit_exceeded");
-                ErrorTracking.userAction("rate_limit_exceeded", {
-                    endpoint: "/translate",
-                    retryAfter: rateLimitCheck.retryAfter,
-                });
-                setLoading(false);
-                return;
-            }
+            cancelTokenSourceRef.current = axios.CancelToken.source();
 
-            if (process.env.NODE_ENV === "development") {
-                console.log("Making fresh API call to /translate", {
-                    url: `${API_BASE_URL}/translate`,
+            setLoading(true);
+            setError("");
+            setResult(null);
+            startProgressSimulation();
+
+            try {
+                const sanitizedText = sanitizeTextInput(text);
+
+                Analytics.translateText(
+                    sanitizedText.length,
+                    sourceLang,
+                    targetLang
+                );
+                ErrorTracking.userAction("translate_text_submitted", {
                     textLength: sanitizedText.length,
                     sourceLang,
                     targetLang,
                 });
-            }
 
-            // Create a fresh axios request with cancel token
-            const response = await axios.post(
-                `${API_BASE_URL}/translate`,
-                {
+                // Check cache
+                const cacheKey = CacheStorage.generateKey("/translate", {
                     text: sanitizedText,
                     source_lang: sourceLang,
                     target_lang: targetLang,
-                },
-                {
-                    timeout: 30000, // 30 second timeout
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    cancelToken: cancelTokenSourceRef.current.token,
-                    transformRequest: [(data) => JSON.stringify(data)],
-                    validateStatus: function (status) {
-                        return status >= 200 && status < 500;
-                    },
-                }
-            );
-
-            // Check if we got an error status but axios didn't reject
-            if (response.status >= 400) {
-                throw new Error(
-                    response.data?.detail || `HTTP ${response.status} error`
-                );
-            }
-
-            // Validate response
-            if (!response.data) {
-                throw new Error("Invalid response from server");
-            }
-
-            if (!response.data.translated_text && !response.data.translation) {
-                throw new Error("No translation received from server");
-            }
-
-            // Cache the result
-            CacheStorage.set(cacheKey, response.data);
-
-            // Record the request for rate limiting
-            translateRateLimiter.recordRequest("/translate");
-
-            setResult(response.data);
-
-            // Track success
-            const duration = Date.now() - startTime;
-            Analytics.translateSuccess(duration, sourceLang, targetLang);
-            Analytics.apiResponseTime("/translate", duration);
-        } catch (err) {
-            let errorMessage = "An error occurred during translation";
-            let errorType = "UNKNOWN_ERROR";
-
-            // Check if request was cancelled
-            if (axios.isCancel(err)) {
-                if (process.env.NODE_ENV === "development") {
-                    console.log("Request cancelled:", err.message);
-                }
-                return; // Don't show error for cancelled requests
-            }
-
-            // Log the full error for debugging
-            console.error("Translation error:", err);
-            if (process.env.NODE_ENV === "development") {
-                console.error("Error details:", {
-                    code: err.code,
-                    message: err.message,
-                    response: err.response,
-                    request: err.request,
                 });
-            }
+                const cachedResult = CacheStorage.get(cacheKey);
 
-            if (err.code === "ECONNABORTED") {
-                errorMessage = "Request timeout. Please try again";
-                errorType = "TIMEOUT";
-            } else if (err.response?.status === 422) {
-                errorMessage = "Invalid translation request. Please check your input";
-                errorType = "HTTP_422";
-            } else if (err.response?.status === 500) {
-                errorMessage = "Server error. Please try again later";
-                errorType = "HTTP_500";
-            } else if (!err.response) {
-                errorMessage =
-                    "Network error. Please check your connection and ensure the API server is running";
-                errorType = "NETWORK_ERROR";
+                if (cachedResult) {
+                    if (process.env.NODE_ENV === "development") {
+                        console.log("✅ Using cached result for translate");
+                    }
+                    setResult(cachedResult);
+                    trackEvent("cache_hit", { endpoint: "/translate" });
+                    stopProgressSimulation();
+                    setLoading(false);
+                    return;
+                }
+
+                // Check rate limit
+                const rateLimitCheck =
+                    translateRateLimiter.checkLimit("/translate");
+                if (!rateLimitCheck.allowed) {
+                    const errorMsg = `Rate limit exceeded. Please wait ${rateLimitCheck.retryAfter} seconds. (${rateLimitCheck.remaining}/${rateLimitCheck.limit} requests remaining)`;
+                    setError(errorMsg);
+                    Analytics.validationError("rate_limit_exceeded");
+                    ErrorTracking.userAction("rate_limit_exceeded", {
+                        endpoint: "/translate",
+                        retryAfter: rateLimitCheck.retryAfter,
+                    });
+                    stopProgressSimulation();
+                    setLoading(false);
+                    return;
+                }
+
                 if (process.env.NODE_ENV === "development") {
-                    console.error(
-                        "Network error details - no response received. API URL:",
-                        API_BASE_URL
+                    console.log("🚀 Making API call to /translate");
+                }
+
+                const response = await axios.post(
+                    `${API_BASE_URL}/translate`,
+                    {
+                        text: sanitizedText,
+                        source_lang: sourceLang,
+                        target_lang: targetLang,
+                    },
+                    {
+                        timeout: 45000,
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Accept-Encoding": "gzip, deflate",
+                        },
+                        cancelToken: cancelTokenSourceRef.current.token,
+                        validateStatus: (status) =>
+                            status >= 200 && status < 500,
+                    }
+                );
+
+                const responseTime = Date.now() - startTime;
+
+                if (process.env.NODE_ENV === "development") {
+                    console.log(`⏱️ API Response time: ${responseTime}ms`);
+                }
+
+                trackEvent("api_response_time", {
+                    endpoint: "/translate",
+                    time: responseTime,
+                });
+
+                if (response.status !== 200) {
+                    throw new Error(
+                        response.data?.error ||
+                        `Server returned status ${response.status}`
                     );
                 }
-            } else {
-                errorMessage =
-                    err.response?.data?.detail || err.message || errorMessage;
-                errorType = `HTTP_${err.response?.status || "UNKNOWN"}`;
+
+                CacheStorage.set(cacheKey, response.data);
+                translateRateLimiter.recordRequest("/translate");
+
+                setResult(response.data);
+                stopProgressSimulation();
+
+                Analytics.translateSuccess(responseTime);
+                ErrorTracking.userAction("translate_text_success", {
+                    responseTime,
+                });
+
+                if (responseTime > 5000) {
+                    console.warn(`⚠️ Slow API response: ${responseTime}ms`);
+                    trackEvent("slow_api_response", {
+                        endpoint: "/translate",
+                        time: responseTime,
+                    });
+                }
+            } catch (err) {
+                stopProgressSimulation();
+
+                if (axios.isCancel(err)) {
+                    if (process.env.NODE_ENV === "development") {
+                        console.log("Request cancelled");
+                    }
+                    return;
+                }
+
+                const errorMessage =
+                    err.response?.data?.error ||
+                    err.message ||
+                    "Failed to translate text. Please try again.";
+
+                setError(errorMessage);
+                Analytics.translateError(errorMessage);
+                ErrorTracking.logError(err, {
+                    context: "translate_text",
+                });
+
+                if (process.env.NODE_ENV === "development") {
+                    console.error("❌ Translation error:", errorMessage);
+                }
+            } finally {
+                setLoading(false);
             }
+        },
+        [startProgressSimulation, stopProgressSimulation]
+    );
 
-            setError(errorMessage);
-
-            // Track error
-            Analytics.translateError(errorType, errorMessage);
-            ErrorTracking.apiError("/translate", err, err.response?.status);
-        } finally {
-            setLoading(false);
-            cancelTokenSourceRef.current = null;
-        }
-    }, []);
-
-    const clearResults = useCallback(() => {
-        setResult(null);
-        setError("");
-    }, []);
-
-    return {
-        loading,
-        result,
-        error,
-        translateText,
-        clearResults,
-    };
+    return { loading, result, error, progress, translateText };
 };

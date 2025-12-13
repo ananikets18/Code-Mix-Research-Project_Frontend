@@ -98,6 +98,7 @@ export const useAnalyzeText = () => {
                 setResult(cachedResult);
                 trackEvent("cache_hit", { endpoint: "/analyze" });
                 stopProgressSimulation();
+                return cachedResult; // Return cached result
                 setLoading(false);
                 return;
             }
@@ -187,6 +188,8 @@ export const useAnalyzeText = () => {
                     time: responseTime,
                 });
             }
+            
+            return response.data; // Return the result for caller
         } catch (err) {
             stopProgressSimulation();
 
@@ -194,7 +197,7 @@ export const useAnalyzeText = () => {
                 if (process.env.NODE_ENV === "development") {
                     console.log("Request cancelled:", err.message);
                 }
-                return;
+                return null; // Return null on cancellation
             }
 
             const errorMessage =
@@ -219,6 +222,8 @@ export const useAnalyzeText = () => {
                     data: err.response?.data,
                 });
             }
+            
+            return null; // Return null on error
         } finally {
             setLoading(false);
         }
@@ -305,7 +310,7 @@ export const useTranslateText = () => {
                     trackEvent("cache_hit", { endpoint: "/translate" });
                     stopProgressSimulation();
                     setLoading(false);
-                    return;
+                    return cachedResult; // Return cached result
                 }
 
                 // Check rate limit
@@ -321,7 +326,7 @@ export const useTranslateText = () => {
                     });
                     stopProgressSimulation();
                     setLoading(false);
-                    return;
+                    return null; // Return null on rate limit
                 }
 
                 if (process.env.NODE_ENV === "development") {
@@ -383,6 +388,8 @@ export const useTranslateText = () => {
                         time: responseTime,
                     });
                 }
+                
+                return response.data; // Return the result for caller
             } catch (err) {
                 stopProgressSimulation();
 
@@ -390,7 +397,7 @@ export const useTranslateText = () => {
                     if (process.env.NODE_ENV === "development") {
                         console.log("Request cancelled");
                     }
-                    return;
+                    return null; // Return null on cancellation
                 }
 
                 const errorMessage =
@@ -407,6 +414,8 @@ export const useTranslateText = () => {
                 if (process.env.NODE_ENV === "development") {
                     console.error("❌ Translation error:", errorMessage);
                 }
+                
+                return null; // Return null on error
             } finally {
                 setLoading(false);
             }

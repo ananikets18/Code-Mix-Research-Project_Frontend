@@ -90,48 +90,6 @@ function HomePage() {
     LanguageStorage.set(sourceLang, targetLang);
   }, [sourceLang, targetLang]);
 
-  // Save to history when result changes (with deduplication)
-  // Use ref to track last saved result to prevent duplicate saves
-  const lastSavedRef = useRef(null);
-  const saveTimeoutRef = useRef(null);
-  
-  useEffect(() => {
-    if (result && text) {
-      // Clear any pending save timeout
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-      
-      // Create a unique key based on text and type only (ignore changing sentiment)
-      const resultKey = `${text.trim().toLowerCase()}-${activeTab}`;
-      
-      // Only save if this is truly a new analysis
-      if (lastSavedRef.current !== resultKey) {
-        // Debounce the save to prevent rapid duplicates
-        saveTimeoutRef.current = setTimeout(() => {
-          const historyItem = {
-            ...result,
-            original_text: text,
-            type: activeTab,
-          };
-          const saved = saveToHistory(historyItem);
-          
-          // Update ref only if save was successful (not a duplicate)
-          if (saved) {
-            lastSavedRef.current = resultKey;
-          }
-        }, 300); // 300ms debounce
-      }
-    }
-    
-    // Cleanup timeout on unmount
-    return () => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-    };
-  }, [result, text, activeTab]);
-
   // Handle form submission
   const handleSubmit = () => {
     // Check internet connection
@@ -159,11 +117,37 @@ function HomePage() {
       return;
     }
 
-    // Proceed with submission
+    // Proceed with submission and save to history on success
     if (activeTab === "analyze") {
-      analyzeApi.analyzeText(trimmedText, compactMode);
+      analyzeApi.analyzeText(trimmedText, compactMode).then((result) => {
+        if (result) {
+          // Save to history only after successful analysis
+          const historyItem = {
+            ...result,
+            original_text: trimmedText,
+            type: activeTab,
+          };
+          saveToHistory(historyItem);
+        }
+      }).catch((error) => {
+        // Error already handled in the hook
+        console.error('Analysis failed:', error);
+      });
     } else if (activeTab === "translate") {
-      translateApi.translateText(trimmedText, sourceLang, targetLang);
+      translateApi.translateText(trimmedText, sourceLang, targetLang).then((result) => {
+        if (result) {
+          // Save to history only after successful translation
+          const historyItem = {
+            ...result,
+            original_text: trimmedText,
+            type: activeTab,
+          };
+          saveToHistory(historyItem);
+        }
+      }).catch((error) => {
+        // Error already handled in the hook
+        console.error('Translation failed:', error);
+      });
     }
   };
 

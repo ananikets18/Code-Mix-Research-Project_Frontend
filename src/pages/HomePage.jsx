@@ -8,6 +8,12 @@ import GitHubFloatingModal from "../components/GitHubFloatingModal";
 import InputSection from "../components/InputSection";
 import QuickPreviewPanel from "../components/QuickPreviewPanel";
 import ResultsSection from "../components/ResultsSection";
+import Modal from "../components/Modal";
+import ToolsMenu from "../components/ToolsMenu";
+import AnalysisHistory from "../components/AnalysisHistory";
+import BatchAnalysis from "../components/BatchAnalysis";
+import StatisticsDashboard from "../components/StatisticsDashboard";
+import ExportButton from "../components/ExportButton";
 import { useAnalyzeText, useTranslateText } from "../hooks/useApiCalls";
 import Analytics from "../utils/analytics";
 import { ErrorTracking } from "../utils/errorTracking";
@@ -17,6 +23,7 @@ import {
   CacheStorage,
 } from "../utils/storage";
 import { exampleTexts } from "../data/exampleTexts";
+import { saveToHistory } from "../utils/analysisHistory";
 
 // Lazy load heavy components
 const AnalyzeResults = lazy(() => import("../components/AnalyzeResults"));
@@ -33,6 +40,11 @@ function HomePage() {
   const [compactMode, setCompactMode] = useState(false);
   const [targetLang, setTargetLang] = useState("hi");
   const [sourceLang, setSourceLang] = useState("auto");
+
+  // Modal states
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [showBatchModal, setShowBatchModal] = useState(false);
+  const [showStatsModal, setShowStatsModal] = useState(false);
 
   // Custom hooks for API calls
   const analyzeApi = useAnalyzeText();
@@ -123,6 +135,33 @@ function HomePage() {
     Analytics.toggleCompactMode(enabled);
   };
 
+  // Handle history item selection
+  const handleHistorySelect = (item) => {
+    setText(item.text);
+    setShowHistoryModal(false);
+    // Auto-switch to correct tab
+    if (item.type) {
+      setActiveTab(item.type);
+    }
+  };
+
+  // Handle batch analysis
+  const handleBatchAnalyze = async (text) => {
+    return await analyzeApi.analyzeText(text, false);
+  };
+
+  // Save to history when result changes
+  useEffect(() => {
+    if (result && text) {
+      saveToHistory({
+        ...result,
+        original_text: text,
+        type: activeTab,
+      });
+    }
+  }, [result, text, activeTab]);
+
+
   return (
     <div className="min-h-screen bg-gradient-light dark:bg-gradient-dark text-gray-900 dark:text-white transition-colors duration-300">
       {/* GitHub Floating Modal */}
@@ -139,6 +178,43 @@ function HomePage() {
       />
 
       <Header />
+
+      {/* Tools Menu - Floating Button */}
+      <div className="fixed top-20 right-4 z-40">
+        <ToolsMenu
+          onOpenHistory={() => setShowHistoryModal(true)}
+          onOpenBatch={() => setShowBatchModal(true)}
+          onOpenStats={() => setShowStatsModal(true)}
+        />
+      </div>
+
+      {/* Modals */}
+      <Modal
+        isOpen={showHistoryModal}
+        onClose={() => setShowHistoryModal(false)}
+        title="📜 Analysis History"
+        size="xlarge"
+      >
+        <AnalysisHistory onSelectItem={handleHistorySelect} />
+      </Modal>
+
+      <Modal
+        isOpen={showBatchModal}
+        onClose={() => setShowBatchModal(false)}
+        title="📊 Batch Analysis"
+        size="xlarge"
+      >
+        <BatchAnalysis onAnalyze={handleBatchAnalyze} loading={loading} />
+      </Modal>
+
+      <Modal
+        isOpen={showStatsModal}
+        onClose={() => setShowStatsModal(false)}
+        title="📈 Statistics Dashboard"
+        size="xlarge"
+      >
+        <StatisticsDashboard />
+      </Modal>
 
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10">
         <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
@@ -186,6 +262,7 @@ function HomePage() {
             AnalyzeResults={AnalyzeResults}
             TranslateResults={TranslateResults}
             compactMode={compactMode}
+            originalText={text}
           />
         </div>
       </main>

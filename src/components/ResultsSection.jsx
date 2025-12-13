@@ -1,10 +1,11 @@
 import React, { Suspense } from "react";
+import ExportButton from "./ExportButton";
 
 /**
  * Results Section Component
  * Displays the full analysis or translation results
  */
-const ResultsSection = ({ result, activeTab, AnalyzeResults, TranslateResults, compactMode }) => {
+const ResultsSection = ({ result, activeTab, AnalyzeResults, TranslateResults, compactMode, originalText }) => {
     if (!result) return null;
 
     return (
@@ -19,25 +20,27 @@ const ResultsSection = ({ result, activeTab, AnalyzeResults, TranslateResults, c
           rounded-lg sm:rounded-xl md:rounded-2xl
           p-3 sm:p-4 md:p-6 lg:p-7 xl:p-8"
             >
-                <h2
-                    className="font-bold 
+                <div className="flex items-center justify-between mb-4 sm:mb-5 md:mb-6 lg:mb-7">
+                    <h2
+                        className="font-bold 
            text-gray-800 dark:text-gray-200 
            flex items-center 
            gap-2 sm:gap-2.5 md:gap-3 lg:gap-3
-           mb-4 sm:mb-5 md:mb-6 lg:mb-7
            text-lg sm:text-xl md:text-2xl lg:text-2xl xl:text-3xl"
-                >
-                    <span
-                        className="text-2xl sm:text-2xl md:text-3xl lg:text-3xl xl:text-4xl 
-               flex-shrink-0"
-                        aria-hidden="true"
                     >
-                        📋
-                    </span>
-                    <span className="leading-tight sm:leading-snug">
-                        Detailed Analysis Results
-                    </span>
-                </h2>
+                        <span
+                            className="text-2xl sm:text-2xl md:text-3xl lg:text-3xl xl:text-4xl 
+               flex-shrink-0"
+                            aria-hidden="true"
+                        >
+                            📋
+                        </span>
+                        <span className="leading-tight sm:leading-snug">
+                            Detailed Analysis Results
+                        </span>
+                    </h2>
+                    <ExportButton result={result} originalText={originalText} />
+                </div>
 
                 <Suspense
                     fallback={

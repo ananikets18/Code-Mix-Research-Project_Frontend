@@ -21,7 +21,7 @@ import {
   CacheStorage,
 } from "../utils/storage";
 import { exampleTexts } from "../data/exampleTexts";
-import { saveToHistory } from "../utils/analysisHistory";
+import { saveToHistory, removeDuplicates } from "../utils/analysisHistory";
 
 // Lazy load heavy components
 const AnalyzeResults = lazy(() => import("../components/AnalyzeResults"));
@@ -73,6 +73,12 @@ function HomePage() {
 
     // Clean expired cache on mount
     CacheStorage.cleanExpired();
+    
+    // Clean up any existing duplicate entries in history
+    const duplicatesRemoved = removeDuplicates();
+    if (duplicatesRemoved > 0) {
+      console.log(`Cleaned up ${duplicatesRemoved} duplicate history entries`);
+    }
   }, []);
 
   // Save preferences when they change
@@ -87,27 +93,43 @@ function HomePage() {
   // Save to history when result changes (with deduplication)
   // Use ref to track last saved result to prevent duplicate saves
   const lastSavedRef = useRef(null);
+  const saveTimeoutRef = useRef(null);
   
   useEffect(() => {
     if (result && text) {
-      // Create a unique key for this result
-      const resultKey = `${text.trim()}-${activeTab}-${JSON.stringify(result.sentiment?.label || '')}`;
+      // Clear any pending save timeout
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
       
-      // Only save if this is a new result (not the same as last saved)
+      // Create a unique key based on text and type only (ignore changing sentiment)
+      const resultKey = `${text.trim().toLowerCase()}-${activeTab}`;
+      
+      // Only save if this is truly a new analysis
       if (lastSavedRef.current !== resultKey) {
-        const historyItem = {
-          ...result,
-          original_text: text,
-          type: activeTab,
-        };
-        const saved = saveToHistory(historyItem);
-        
-        // Update ref only if save was successful (not a duplicate)
-        if (saved) {
-          lastSavedRef.current = resultKey;
-        }
+        // Debounce the save to prevent rapid duplicates
+        saveTimeoutRef.current = setTimeout(() => {
+          const historyItem = {
+            ...result,
+            original_text: text,
+            type: activeTab,
+          };
+          const saved = saveToHistory(historyItem);
+          
+          // Update ref only if save was successful (not a duplicate)
+          if (saved) {
+            lastSavedRef.current = resultKey;
+          }
+        }, 300); // 300ms debounce
       }
     }
+    
+    // Cleanup timeout on unmount
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
   }, [result, text, activeTab]);
 
   // Handle form submission

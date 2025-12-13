@@ -5,7 +5,7 @@
 
 const HISTORY_KEY = 'nlp_analysis_history';
 const MAX_HISTORY_ITEMS = 50;
-const DUPLICATE_WINDOW_MS = 5000; // 5 seconds to detect duplicates
+const DUPLICATE_WINDOW_MS = 60000; // 60 seconds (1 minute) to detect duplicates
 
 /**
  * Generate a unique ID based on content and timestamp
@@ -35,26 +35,41 @@ const simpleHash = (str) => {
 
 /**
  * Check if this analysis is a duplicate of a recent entry
+ * Prevents saving the same text multiple times within the duplicate window
  * @param {Array} history - Existing history
  * @param {string} text - Text to check
  * @param {string} type - Analysis type
  * @returns {boolean} True if duplicate
  */
 const isDuplicate = (history, text, type) => {
+    if (!history || history.length === 0) return false;
+    
     const now = Date.now();
     const normalizedText = text.trim().toLowerCase();
     
+    // Check if same text exists in recent history
     return history.some(item => {
-        // Check if it's the same text and type
-        const isSameText = item.text.trim().toLowerCase() === normalizedText;
+        // Must be same text and type
+        const isSameText = item.text && item.text.trim().toLowerCase() === normalizedText;
         const isSameType = item.type === type;
         
-        // Check if within duplicate detection window
-        const itemTime = new Date(item.timestamp).getTime();
-        const timeDiff = now - itemTime;
-        const isRecent = timeDiff < DUPLICATE_WINDOW_MS;
+        if (!isSameText || !isSameType) return false;
         
-        return isSameText && isSameType && isRecent;
+        // Check if within duplicate detection window
+        try {
+            const itemTime = new Date(item.timestamp).getTime();
+            const timeDiff = now - itemTime;
+            const isRecent = timeDiff < DUPLICATE_WINDOW_MS;
+            
+            if (isRecent) {
+                console.log(`Duplicate detected: Same text analyzed ${Math.round(timeDiff / 1000)}s ago`);
+            }
+            
+            return isRecent;
+        } catch (error) {
+            console.error('Error checking timestamp:', error);
+            return false;
+        }
     });
 };
 
@@ -198,6 +213,42 @@ export const clearHistory = () => {
 };
 
 /**
+ * Remove duplicate entries from history
+ * Keeps the most recent entry for each unique text+type combination
+ * @returns {number} Number of duplicates removed
+ */
+export const removeDuplicates = () => {
+    try {
+        const history = getHistory();
+        const seen = new Map();
+        const cleaned = [];
+        
+        // Iterate through history (newest first)
+        history.forEach(item => {
+            const key = `${item.text.trim().toLowerCase()}-${item.type}`;
+            
+            // Keep only the first occurrence (most recent due to order)
+            if (!seen.has(key)) {
+                seen.set(key, true);
+                cleaned.push(item);
+            }
+        });
+        
+        const duplicatesRemoved = history.length - cleaned.length;
+        
+        if (duplicatesRemoved > 0) {
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(cleaned));
+            console.log(`Removed ${duplicatesRemoved} duplicate entries from history`);
+        }
+        
+        return duplicatesRemoved;
+    } catch (error) {
+        console.error('Error removing duplicates:', error);
+        return 0;
+    }
+};
+
+/**
  * Get history statistics
  * @returns {Object} Statistics object
  */
@@ -311,6 +362,7 @@ export default {
     getFilteredHistory,
     deleteHistoryItem,
     clearHistory,
+    removeDuplicates,
     getHistoryStats,
     exportHistoryJSON,
     exportHistoryCSV,

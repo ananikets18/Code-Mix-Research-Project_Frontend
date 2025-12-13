@@ -7,15 +7,15 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col items-center text-center text-gray-500 dark:text-gray-400 space-y-2">
           {/* DigitalOcean Logo section */}
-          <div className="flex items-center gap-3 py-2">
+          <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 py-2">
             <img
               src={DigitalOceanLogo}
               alt="DigitalOcean"
-              className="h-8 md:h-10 w-auto"
+              className="h-10 sm:h-12 md:h-14 lg:h-16 w-auto"
               title="DigitalOcean"
             />
-            <p className="text-sm md:text-base font-semibold text-gray-500 dark:text-gray-500">
-              Backend infrastructure running <br></br> on DigitalOcean
+            <p className="text-sm sm:text-base md:text-lg font-semibold text-gray-600 dark:text-gray-400 text-left">
+              Backend infrastructure running <br className="hidden sm:inline"></br> on DigitalOcean
             </p>
           </div>
 

@@ -188,6 +188,7 @@ function HomePage() {
 
             {/* Right: Quick Preview - Takes 1 column */}
             <div className="space-y-4 sm:space-y-6">
+              {/* Quick Preview Panel */}
               <div className="bg-white dark:bg-gray-800/90 border border-gray-200 dark:border-gray-700 shadow-lg rounded-xl p-4 sm:p-6 lg:sticky lg:top-6">
                 <h3 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200 flex items-center gap-2">
                   <span className="text-xl">📊</span>
@@ -200,6 +201,26 @@ function HomePage() {
                   activeTab={activeTab}
                 />
               </div>
+
+              {/* Analysis History Panel */}
+              <div className="bg-white dark:bg-gray-800/90 border border-gray-200 dark:border-gray-700 shadow-lg rounded-xl p-4 sm:p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2">
+                    <span className="text-xl">📜</span>
+                    History
+                  </h3>
+                  <button
+                    onClick={() => setShowHistory(!showHistory)}
+                    className="px-3 py-1.5 text-sm bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
+                  >
+                    {showHistory ? 'Hide' : 'Show'}
+                  </button>
+                </div>
+
+                {showHistory && (
+                  <AnalysisHistory onSelectItem={handleHistorySelect} />
+                )}
+              </div>
             </div>
           </div>
 
@@ -211,26 +232,6 @@ function HomePage() {
             TranslateResults={TranslateResults}
             compactMode={compactMode}
           />
-
-          {/* Analysis History Section */}
-          <div className="bg-white dark:bg-gray-800/90 border border-gray-200 dark:border-gray-700 shadow-lg rounded-xl p-4 sm:p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2">
-                <span className="text-xl">📜</span>
-                Analysis History
-              </h3>
-              <button
-                onClick={() => setShowHistory(!showHistory)}
-                className="px-3 py-1.5 text-sm bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
-              >
-                {showHistory ? 'Hide' : 'Show'}
-              </button>
-            </div>
-
-            {showHistory && (
-              <AnalysisHistory onSelectItem={handleHistorySelect} />
-            )}
-          </div>
         </div>
       </main>
 

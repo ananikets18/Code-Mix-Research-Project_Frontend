@@ -41,7 +41,7 @@ This browser extension integrates with our NLP backend to provide instant analys
                    │
                    ▼
 ┌─────────────────────────────────────────────────────┐
-│  Backend API (Azure)                                │
+│  Backend API (DigitalOcean)                         │
 │  https://thequoteshub.info/                         │
 │  - /analyze - NLP analysis                          │
 │  - /translate - Translation service                 │

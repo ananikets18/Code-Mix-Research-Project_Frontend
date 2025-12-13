@@ -46,8 +46,6 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "geolocation=(), microphone=(), camera=()"
-    # Enable compression
-    Content-Encoding = "gzip"
     # Preload critical resources
     Link = '''
       </static/css/main.*.css>; rel=preload; as=style,

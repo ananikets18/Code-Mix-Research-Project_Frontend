@@ -119,7 +119,7 @@ export const KeyboardShortcutsButton = ({ shortcuts }) => {
         <>
             <button
                 onClick={() => setIsOpen(true)}
-                className="fixed bottom-4 right-4 z-30 p-3 bg-primary-500 text-white rounded-full shadow-lg hover:bg-primary-600 transition-all hover:scale-110"
+                className="hidden md:flex fixed bottom-4 right-4 z-30 p-3 bg-primary-500 text-white rounded-full shadow-lg hover:bg-primary-600 transition-all hover:scale-110"
                 title="Keyboard Shortcuts (Shift + ?)"
             >
                 <FontAwesomeIcon icon={faKeyboard} className="text-lg" />

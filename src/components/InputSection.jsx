@@ -25,6 +25,7 @@ const InputSection = ({
     error,
     compactMode,
     handleCompactModeToggle,
+    textInputRef,
 }) => {
     return (
         <div className="lg:col-span-2 space-y-4 sm:space-y-6">

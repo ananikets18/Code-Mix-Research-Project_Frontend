@@ -1,6 +1,6 @@
 import React from 'react';
 
-const TextInput = ({ text, setText, exampleTexts }) => {
+const TextInput = ({ text, setText, exampleTexts, textInputRef }) => {
   const MAX_LENGTH = 5000;
   const charCount = text.length;
   const isNearLimit = charCount > MAX_LENGTH * 0.9;
@@ -53,6 +53,7 @@ const TextInput = ({ text, setText, exampleTexts }) => {
           </span>
         </div>
         <textarea
+          ref={textInputRef}
           value={text}
           onChange={handleChange}
           placeholder="Type or paste your text here..."

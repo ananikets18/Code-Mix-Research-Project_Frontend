@@ -1,4 +1,4 @@
-import React, { useState, lazy, useEffect } from "react";
+import React, { useState, lazy, useEffect, useRef } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import NetworkStatus from "../components/NetworkStatus";
@@ -10,6 +10,8 @@ import QuickPreviewPanel from "../components/QuickPreviewPanel";
 import ResultsSection from "../components/ResultsSection";
 import AnalysisHistory from "../components/AnalysisHistory";
 import { useAnalyzeText, useTranslateText } from "../hooks/useApiCalls";
+import useKeyboardShortcuts, { KeyboardShortcutsButton } from "../hooks/useKeyboardShortcuts";
+import { useToast } from "../context/ToastContext";
 import Analytics from "../utils/analytics";
 import { ErrorTracking } from "../utils/errorTracking";
 import {
@@ -36,6 +38,12 @@ function HomePage() {
   const [targetLang, setTargetLang] = useState("hi");
   const [sourceLang, setSourceLang] = useState("auto");
   const [showHistory, setShowHistory] = useState(false);
+
+  // Refs
+  const textInputRef = useRef(null);
+
+  // Toast notifications
+  const { success, error: showError, info } = useToast();
 
   // Custom hooks for API calls
   const analyzeApi = useAnalyzeText();
@@ -145,7 +153,58 @@ function HomePage() {
     setShowHistory(false);
     // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    info('History item loaded');
   };
+
+  // Keyboard shortcuts
+  const shortcuts = [
+    {
+      key: 'Enter',
+      ctrl: true,
+      description: 'Submit analysis',
+      action: () => {
+        if (text.trim()) {
+          handleSubmit();
+        }
+      },
+    },
+    {
+      key: 'k',
+      ctrl: true,
+      description: 'Focus text input',
+      action: () => {
+        textInputRef.current?.focus();
+      },
+    },
+    {
+      key: 'h',
+      ctrl: true,
+      description: 'Toggle history',
+      action: () => setShowHistory(!showHistory),
+    },
+    {
+      key: 'Escape',
+      description: 'Clear text',
+      action: () => {
+        setText('');
+        info('Text cleared');
+      },
+    },
+    {
+      key: '1',
+      ctrl: true,
+      description: 'Switch to Analyze tab',
+      action: () => handleTabSwitch('analyze'),
+    },
+    {
+      key: '2',
+      ctrl: true,
+      description: 'Switch to Translate tab',
+      action: () => handleTabSwitch('translate'),
+    },
+  ];
+
+  useKeyboardShortcuts(shortcuts);
 
   return (
     <div className="min-h-screen bg-gradient-light dark:bg-gradient-dark text-gray-900 dark:text-white transition-colors duration-300">
@@ -184,6 +243,7 @@ function HomePage() {
               error={error}
               compactMode={compactMode}
               handleCompactModeToggle={handleCompactModeToggle}
+              textInputRef={textInputRef}
             />
 
             {/* Right: Quick Preview - Takes 1 column */}
@@ -238,6 +298,8 @@ function HomePage() {
       <Footer />
       {/* Info Banner */}
       <InfoBanner />
+      {/* Keyboard Shortcuts */}
+      <KeyboardShortcutsButton shortcuts={shortcuts} />
     </div>
   );
 }

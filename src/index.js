@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import { ThemeProvider } from './context/ThemeContext';
+import { ToastProvider } from './context/ToastContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import { initializeAnalytics } from './utils/analytics';
 import { initializeErrorTracking } from './utils/errorTracking';
@@ -16,9 +17,11 @@ const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
     <ErrorBoundary>
-      <ThemeProvider>
-        <App />
-      </ThemeProvider>
+      <ToastProvider>
+        <ThemeProvider>
+          <App />
+        </ThemeProvider>
+      </ToastProvider>
     </ErrorBoundary>
   </React.StrictMode>
 );

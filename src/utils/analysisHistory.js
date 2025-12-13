@@ -5,6 +5,58 @@
 
 const HISTORY_KEY = 'nlp_analysis_history';
 const MAX_HISTORY_ITEMS = 50;
+const DUPLICATE_WINDOW_MS = 5000; // 5 seconds to detect duplicates
+
+/**
+ * Generate a unique ID based on content and timestamp
+ * @param {string} text - Text content
+ * @param {string} type - Analysis type
+ * @returns {string} Unique ID
+ */
+const generateUniqueId = (text, type) => {
+    const hash = simpleHash(text + type);
+    return `${Date.now()}-${hash}`;
+};
+
+/**
+ * Simple hash function for deduplication
+ * @param {string} str - String to hash
+ * @returns {number} Hash value
+ */
+const simpleHash = (str) => {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash; // Convert to 32-bit integer
+    }
+    return Math.abs(hash);
+};
+
+/**
+ * Check if this analysis is a duplicate of a recent entry
+ * @param {Array} history - Existing history
+ * @param {string} text - Text to check
+ * @param {string} type - Analysis type
+ * @returns {boolean} True if duplicate
+ */
+const isDuplicate = (history, text, type) => {
+    const now = Date.now();
+    const normalizedText = text.trim().toLowerCase();
+    
+    return history.some(item => {
+        // Check if it's the same text and type
+        const isSameText = item.text.trim().toLowerCase() === normalizedText;
+        const isSameType = item.type === type;
+        
+        // Check if within duplicate detection window
+        const itemTime = new Date(item.timestamp).getTime();
+        const timeDiff = now - itemTime;
+        const isRecent = timeDiff < DUPLICATE_WINDOW_MS;
+        
+        return isSameText && isSameType && isRecent;
+    });
+};
 
 /**
  * Save analysis to history
@@ -13,12 +65,20 @@ const MAX_HISTORY_ITEMS = 50;
 export const saveToHistory = (analysis) => {
     try {
         const history = getHistory();
+        const text = analysis.original_text || analysis.text;
+        const type = analysis.type || 'analyze';
+
+        // Check for duplicates to prevent redundant entries
+        if (isDuplicate(history, text, type)) {
+            console.log('Duplicate analysis detected, skipping save');
+            return null;
+        }
 
         const historyItem = {
-            id: Date.now(),
+            id: generateUniqueId(text, type),
             timestamp: new Date().toISOString(),
-            text: analysis.original_text || analysis.text,
-            type: analysis.type || 'analyze', // 'analyze' or 'translate'
+            text: text,
+            type: type,
             result: analysis,
             sentiment: analysis.sentiment?.label,
             language: analysis.language?.name || analysis.language?.language_info?.language_name,
@@ -110,12 +170,12 @@ export const getFilteredHistory = (filters = {}) => {
 
 /**
  * Delete history item by ID
- * @param {number} id - Item ID
+ * @param {string|number} id - Item ID
  */
 export const deleteHistoryItem = (id) => {
     try {
         const history = getHistory();
-        const filtered = history.filter(item => item.id !== id);
+        const filtered = history.filter(item => item.id != id); // Use loose equality to handle both string and number IDs
         localStorage.setItem(HISTORY_KEY, JSON.stringify(filtered));
         return true;
     } catch (error) {

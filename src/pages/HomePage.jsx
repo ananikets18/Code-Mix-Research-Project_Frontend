@@ -84,15 +84,29 @@ function HomePage() {
     LanguageStorage.set(sourceLang, targetLang);
   }, [sourceLang, targetLang]);
 
-  // Save to history when result changes
+  // Save to history when result changes (with deduplication)
+  // Use ref to track last saved result to prevent duplicate saves
+  const lastSavedRef = useRef(null);
+  
   useEffect(() => {
     if (result && text) {
-      const historyItem = {
-        ...result,
-        original_text: text,
-        type: activeTab,
-      };
-      saveToHistory(historyItem);
+      // Create a unique key for this result
+      const resultKey = `${text.trim()}-${activeTab}-${JSON.stringify(result.sentiment?.label || '')}`;
+      
+      // Only save if this is a new result (not the same as last saved)
+      if (lastSavedRef.current !== resultKey) {
+        const historyItem = {
+          ...result,
+          original_text: text,
+          type: activeTab,
+        };
+        const saved = saveToHistory(historyItem);
+        
+        // Update ref only if save was successful (not a duplicate)
+        if (saved) {
+          lastSavedRef.current = resultKey;
+        }
+      }
     }
   }, [result, text, activeTab]);
 

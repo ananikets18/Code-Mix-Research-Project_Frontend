@@ -5,6 +5,7 @@ import NetworkStatus from "../components/NetworkStatus";
 import LoadingOverlay from "../components/LoadingOverlay";
 import InfoBanner from "../components/InfoBanner";
 import GitHubFloatingModal from "../components/GitHubFloatingModal";
+import WelcomeModal from "../components/WelcomeModal";
 import InputSection from "../components/InputSection";
 import QuickPreviewPanel from "../components/QuickPreviewPanel";
 import ResultsSection from "../components/ResultsSection";
@@ -208,6 +209,9 @@ function HomePage() {
 
   return (
     <div className="min-h-screen bg-gradient-light dark:bg-gradient-dark text-gray-900 dark:text-white transition-colors duration-300">
+      {/* Welcome Modal */}
+      <WelcomeModal />
+
       {/* GitHub Floating Modal */}
       <GitHubFloatingModal />
 

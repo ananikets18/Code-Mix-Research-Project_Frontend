@@ -8,9 +8,6 @@ import GitHubFloatingModal from "../components/GitHubFloatingModal";
 import InputSection from "../components/InputSection";
 import QuickPreviewPanel from "../components/QuickPreviewPanel";
 import ResultsSection from "../components/ResultsSection";
-import StatsDashboard from "../components/StatsDashboard";
-import SentimentHighlighter from "../components/SentimentHighlighter";
-import ShareExport from "../components/ShareExport";
 import { useAnalyzeText, useTranslateText } from "../hooks/useApiCalls";
 import Analytics from "../utils/analytics";
 import { ErrorTracking } from "../utils/errorTracking";
@@ -19,7 +16,6 @@ import {
   LanguageStorage,
   CacheStorage,
 } from "../utils/storage";
-import { saveToHistory } from "../utils/historyStorage";
 import { exampleTexts } from "../data/exampleTexts";
 
 // Lazy load heavy components
@@ -75,13 +71,6 @@ function HomePage() {
   useEffect(() => {
     LanguageStorage.set(sourceLang, targetLang);
   }, [sourceLang, targetLang]);
-
-  // Save results to history when available
-  useEffect(() => {
-    if (result && text) {
-      saveToHistory(text, result, activeTab);
-    }
-  }, [result, text, activeTab]);
 
   // Handle form submission
   const handleSubmit = () => {
@@ -198,30 +187,6 @@ function HomePage() {
             TranslateResults={TranslateResults}
             compactMode={compactMode}
           />
-
-          {/* New Features Section */}
-          {result && activeTab === "analyze" && (
-            <>
-              {/* Sentiment Highlighting */}
-              {result.sentiment && (
-                <SentimentHighlighter
-                  text={text}
-                  sentimentResult={result.sentiment}
-                />
-              )}
-
-              {/* Share & Export */}
-              <ShareExport text={text} result={result} type={activeTab} />
-            </>
-          )}
-
-          {/* Share for Translation */}
-          {result && activeTab === "translate" && (
-            <ShareExport text={text} result={result} type={activeTab} />
-          )}
-
-          {/* Statistics Dashboard */}
-          <StatsDashboard />
         </div>
       </main>
 

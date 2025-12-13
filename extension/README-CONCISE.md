@@ -39,7 +39,7 @@ Automatically analyzes posts on Twitter/X, YouTube, Reddit, LinkedIn, Facebook, 
 ```
 Social Media Post → Extension Detects → Sends to Backend API
                                               ↓
-                                    NLP Analysis (Azure)
+                                    NLP Analysis (DigitalOcean)
                                               ↓
                                     Results Displayed
 ```
@@ -79,7 +79,7 @@ Click any badge to see:
 
 - **Manifest V3** Chrome Extension
 - **Chrome APIs**: Storage, ActiveTab, Messaging
-- **Backend**: Azure-hosted NLP API
+- **Backend**: DigitalOcean-hosted NLP API
 - **Models**: IndicBERT-v2, XLM-RoBERTa
 - **Styling**: Inter font, custom CSS
 

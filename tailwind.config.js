@@ -105,6 +105,10 @@ module.exports = {
         "glass-lg": "0 20px 60px 0 rgba(0, 0, 0, 0.5)",
         "glow-primary": "0 0 20px rgba(6, 182, 212, 0.5)",
         "glow-secondary": "0 0 20px rgba(168, 85, 247, 0.5)",
+        "card": "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
+        "card-hover": "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+        "card-lg": "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+        "card-xl": "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
       },
       screens: {
         xs: "475px", // Extra small devices

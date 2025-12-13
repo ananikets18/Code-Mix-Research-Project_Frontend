@@ -249,9 +249,9 @@ function HomePage() {
             {/* Right: Quick Preview - Takes 1 column */}
             <div className="space-y-4 sm:space-y-6">
               {/* Quick Preview Panel */}
-              <div className="bg-white dark:bg-gray-800/90 border border-gray-200 dark:border-gray-700 shadow-lg rounded-xl p-4 sm:p-6">
-                <h3 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200 flex items-center gap-2">
-                  <span className="text-xl">📊</span>
+              <div className="bg-white dark:bg-gray-800/90 border border-gray-200 dark:border-gray-700 shadow-card-lg hover:shadow-card-xl transition-shadow duration-300 rounded-xl p-4 sm:p-6">
+                <h3 className="text-lg sm:text-xl font-bold mb-4 text-gray-900 dark:text-white flex items-center gap-2">
+                  <span className="text-xl sm:text-2xl">📊</span>
                   Quick Preview
                 </h3>
 
@@ -263,15 +263,15 @@ function HomePage() {
               </div>
 
               {/* Analysis History Panel */}
-              <div className="bg-white dark:bg-gray-800/90 border border-gray-200 dark:border-gray-700 shadow-lg rounded-xl p-4 sm:p-6">
+              <div className="bg-white dark:bg-gray-800/90 border border-gray-200 dark:border-gray-700 shadow-card-lg hover:shadow-card-xl transition-shadow duration-300 rounded-xl p-4 sm:p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2">
-                    <span className="text-xl">📜</span>
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                    <span className="text-xl sm:text-2xl">📜</span>
                     History
                   </h3>
                   <button
                     onClick={() => setShowHistory(!showHistory)}
-                    className="px-3 py-1.5 text-sm bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
+                    className="px-3 py-1.5 text-sm font-medium bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-all shadow-sm hover:shadow-md"
                   >
                     {showHistory ? 'Hide' : 'Show'}
                   </button>

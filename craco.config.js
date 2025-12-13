@@ -11,6 +11,10 @@ module.exports = {
         configure: (webpackConfig, { env, paths }) => {
             // Production optimizations
             if (env === 'production') {
+                // Compression is handled by Netlify automatically
+                // Disabling webpack compression to avoid conflicts
+
+                /*
                 // Enable Gzip compression
                 webpackConfig.plugins.push(
                     new CompressionWebpackPlugin({
@@ -35,6 +39,7 @@ module.exports = {
                         minRatio: 0.8,
                     })
                 );
+                */
 
                 // Bundle analyzer (only when ANALYZE=true)
                 if (process.env.ANALYZE === 'true') {

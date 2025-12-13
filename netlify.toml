@@ -1,24 +1,6 @@
 [build]
   publish = "build"
-  command = "npm run build:optimized"
-
-# Build processing
-[build.processing]
-  skip_processing = false
-
-[build.processing.css]
-  bundle = true
-  minify = true
-
-[build.processing.js]
-  bundle = true
-  minify = true
-
-[build.processing.html]
-  pretty_urls = true
-
-[build.processing.images]
-  compress = true
+  command = "npm run build"
 
 # API Proxy to bypass CORS issues
 [[redirects]]
@@ -38,7 +20,7 @@
   NPM_FLAGS = "--legacy-peer-deps"
   CI = "false"
 
-# Security and performance headers
+# Security headers
 [[headers]]
   for = "/*"
   [headers.values]
@@ -46,11 +28,6 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "geolocation=(), microphone=(), camera=()"
-    # Preload critical resources
-    Link = '''
-      </static/css/main.*.css>; rel=preload; as=style,
-      </static/js/main.*.js>; rel=preload; as=script
-    '''
 
 # Static assets - Long-term caching (1 year)
 [[headers]]

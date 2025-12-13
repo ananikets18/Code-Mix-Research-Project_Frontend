@@ -8,6 +8,7 @@ import GitHubFloatingModal from "../components/GitHubFloatingModal";
 import InputSection from "../components/InputSection";
 import QuickPreviewPanel from "../components/QuickPreviewPanel";
 import ResultsSection from "../components/ResultsSection";
+import AnalysisHistory from "../components/AnalysisHistory";
 import { useAnalyzeText, useTranslateText } from "../hooks/useApiCalls";
 import Analytics from "../utils/analytics";
 import { ErrorTracking } from "../utils/errorTracking";
@@ -17,6 +18,7 @@ import {
   CacheStorage,
 } from "../utils/storage";
 import { exampleTexts } from "../data/exampleTexts";
+import { saveToHistory } from "../utils/analysisHistory";
 
 // Lazy load heavy components
 const AnalyzeResults = lazy(() => import("../components/AnalyzeResults"));
@@ -33,6 +35,7 @@ function HomePage() {
   const [compactMode, setCompactMode] = useState(false);
   const [targetLang, setTargetLang] = useState("hi");
   const [sourceLang, setSourceLang] = useState("auto");
+  const [showHistory, setShowHistory] = useState(false);
 
   // Custom hooks for API calls
   const analyzeApi = useAnalyzeText();
@@ -71,6 +74,18 @@ function HomePage() {
   useEffect(() => {
     LanguageStorage.set(sourceLang, targetLang);
   }, [sourceLang, targetLang]);
+
+  // Save to history when result changes
+  useEffect(() => {
+    if (result && text) {
+      const historyItem = {
+        ...result,
+        original_text: text,
+        type: activeTab,
+      };
+      saveToHistory(historyItem);
+    }
+  }, [result, text, activeTab]);
 
   // Handle form submission
   const handleSubmit = () => {
@@ -121,6 +136,15 @@ function HomePage() {
   const handleCompactModeToggle = (enabled) => {
     setCompactMode(enabled);
     Analytics.toggleCompactMode(enabled);
+  };
+
+  // Handle history item selection
+  const handleHistorySelect = (item) => {
+    setText(item.text);
+    setActiveTab(item.type);
+    setShowHistory(false);
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -187,6 +211,26 @@ function HomePage() {
             TranslateResults={TranslateResults}
             compactMode={compactMode}
           />
+
+          {/* Analysis History Section */}
+          <div className="bg-white dark:bg-gray-800/90 border border-gray-200 dark:border-gray-700 shadow-lg rounded-xl p-4 sm:p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2">
+                <span className="text-xl">📜</span>
+                Analysis History
+              </h3>
+              <button
+                onClick={() => setShowHistory(!showHistory)}
+                className="px-3 py-1.5 text-sm bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
+              >
+                {showHistory ? 'Hide' : 'Show'}
+              </button>
+            </div>
+
+            {showHistory && (
+              <AnalysisHistory onSelectItem={handleHistorySelect} />
+            )}
+          </div>
         </div>
       </main>
 

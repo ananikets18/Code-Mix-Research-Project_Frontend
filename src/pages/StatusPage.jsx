@@ -1,51 +1,17 @@
-import React, { useState, useEffect, useCallback } from "react";
-import axios from "axios";
+import React from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import InfoBanner from "../components/InfoBanner";
 import GitHubFloatingModal from "../components/GitHubFloatingModal";
+import { useStatus } from "../context/StatusContext";
+
 /**
  * StatusPage - Dedicated page showing backend status, model info, and Redis status
+ * Now uses centralized StatusContext to avoid race conditions and ensure consistent state
  */
 const StatusPage = () => {
-  const [statusData, setStatusData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [lastUpdated, setLastUpdated] = useState(null);
-
-  const API_BASE_URL =
-    process.env.REACT_APP_API_BASE_URL || "http://localhost:8000";
-
-  const fetchStatus = useCallback(async () => {
-    try {
-      setError(null);
-      const response = await axios.get(`${API_BASE_URL}/status`, {
-        timeout: 10000,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (response.data) {
-        setStatusData(response.data);
-        setLastUpdated(new Date());
-      }
-    } catch (err) {
-      console.error("Failed to fetch backend status:", err);
-      setError(err.message || "Failed to connect to backend");
-    } finally {
-      setLoading(false);
-    }
-  }, [API_BASE_URL]);
-
-  useEffect(() => {
-    fetchStatus();
-
-    // Auto-refresh every 10 seconds
-    const interval = setInterval(fetchStatus, 10000);
-
-    return () => clearInterval(interval);
-  }, [fetchStatus]);
+  // Use centralized status from context
+  const { statusData, loading, error, lastUpdated, fetchStatus } = useStatus();
 
   const getModelDetails = () => {
     if (!statusData?.ml_models?.models) return [];

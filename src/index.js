@@ -4,6 +4,7 @@ import './index.css';
 import App from './App';
 import { ThemeProvider } from './context/ThemeContext';
 import { ToastProvider } from './context/ToastContext';
+import { StatusProvider } from './context/StatusContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import { initializeAnalytics } from './utils/analytics';
 import { initializeErrorTracking } from './utils/errorTracking';
@@ -19,7 +20,9 @@ root.render(
     <ErrorBoundary>
       <ToastProvider>
         <ThemeProvider>
-          <App />
+          <StatusProvider>
+            <App />
+          </StatusProvider>
         </ThemeProvider>
       </ToastProvider>
     </ErrorBoundary>

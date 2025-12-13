@@ -1,50 +1,16 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React from 'react';
 import StatusBadge from './StatusBadge';
-import axios from 'axios';
+import { useStatus } from '../context/StatusContext';
 
 /**
- * BackendStatus component that fetches and displays backend status badges
+ * BackendStatus component that displays backend status badges
+ * Now uses centralized StatusContext to ensure consistent state across the application
  * - Model load status (dynamically shows which models are loaded)
  * - Redis/Upstash ready status
  */
 const BackendStatus = () => {
-  const [statusData, setStatusData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000';
-  const POLL_INTERVAL = 30000; // Poll every 30 seconds
-
-  const fetchStatus = useCallback(async () => {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/status`, {
-        timeout: 5000,
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
-
-      if (response.data) {
-        setStatusData(response.data);
-        setError(false);
-      }
-    } catch (err) {
-      console.error('Failed to fetch backend status:', err);
-      setError(true);
-    } finally {
-      setLoading(false);
-    }
-  }, [API_BASE_URL]);
-
-  useEffect(() => {
-    // Initial fetch
-    fetchStatus();
-
-    // Poll periodically
-    const interval = setInterval(fetchStatus, POLL_INTERVAL);
-
-    return () => clearInterval(interval);
-  }, [fetchStatus]);
+  // Use centralized status from context
+  const { statusData, loading, error } = useStatus();
 
   // Helper to extract model status
   const getModelStatus = () => {

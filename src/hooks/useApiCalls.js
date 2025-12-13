@@ -4,6 +4,7 @@ import { sanitizeTextInput } from "../utils/sanitize";
 import Analytics, { trackEvent } from "../utils/analytics";
 import { ErrorTracking } from "../utils/errorTracking";
 import { CacheStorage } from "../utils/storage";
+import { analyzeRateLimiter, translateRateLimiter } from "../utils/rateLimiter";
 
 // Environment configuration with fallback
 const API_BASE_URL =
@@ -11,7 +12,7 @@ const API_BASE_URL =
 
 /**
  * Custom hook for text analysis API calls
- * Handles caching, error tracking, and analytics
+ * Handles caching, error tracking, analytics, and rate limiting
  */
 export const useAnalyzeText = () => {
     const [loading, setLoading] = useState(false);
@@ -62,6 +63,20 @@ export const useAnalyzeText = () => {
                 return;
             }
 
+            // Check rate limit before making API call
+            const rateLimitCheck = analyzeRateLimiter.checkLimit("/analyze");
+            if (!rateLimitCheck.allowed) {
+                const errorMsg = `Rate limit exceeded. Please wait ${rateLimitCheck.retryAfter} seconds before trying again. (${rateLimitCheck.remaining}/${rateLimitCheck.limit} requests remaining)`;
+                setError(errorMsg);
+                Analytics.validationError("rate_limit_exceeded");
+                ErrorTracking.userAction("rate_limit_exceeded", {
+                    endpoint: "/analyze",
+                    retryAfter: rateLimitCheck.retryAfter,
+                });
+                setLoading(false);
+                return;
+            }
+
             if (process.env.NODE_ENV === "development") {
                 console.log("Making fresh API call to /analyze", {
                     url: `${API_BASE_URL}/analyze`,
@@ -104,6 +119,9 @@ export const useAnalyzeText = () => {
 
             // Cache the result
             CacheStorage.set(cacheKey, response.data);
+
+            // Record the request for rate limiting
+            analyzeRateLimiter.recordRequest("/analyze");
 
             setResult(response.data);
 
@@ -190,7 +208,7 @@ export const useAnalyzeText = () => {
 
 /**
  * Custom hook for text translation API calls
- * Handles caching, error tracking, and analytics
+ * Handles caching, error tracking, analytics, and rate limiting
  */
 export const useTranslateText = () => {
     const [loading, setLoading] = useState(false);
@@ -243,6 +261,20 @@ export const useTranslateText = () => {
                 return;
             }
 
+            // Check rate limit before making API call
+            const rateLimitCheck = translateRateLimiter.checkLimit("/translate");
+            if (!rateLimitCheck.allowed) {
+                const errorMsg = `Rate limit exceeded. Please wait ${rateLimitCheck.retryAfter} seconds before trying again. (${rateLimitCheck.remaining}/${rateLimitCheck.limit} requests remaining)`;
+                setError(errorMsg);
+                Analytics.validationError("rate_limit_exceeded");
+                ErrorTracking.userAction("rate_limit_exceeded", {
+                    endpoint: "/translate",
+                    retryAfter: rateLimitCheck.retryAfter,
+                });
+                setLoading(false);
+                return;
+            }
+
             if (process.env.NODE_ENV === "development") {
                 console.log("Making fresh API call to /translate", {
                     url: `${API_BASE_URL}/translate`,
@@ -291,6 +323,9 @@ export const useTranslateText = () => {
 
             // Cache the result
             CacheStorage.set(cacheKey, response.data);
+
+            // Record the request for rate limiting
+            translateRateLimiter.recordRequest("/translate");
 
             setResult(response.data);
 

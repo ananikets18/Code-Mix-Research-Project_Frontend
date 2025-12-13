@@ -4,6 +4,7 @@ import TextInput from "./TextInput";
 import TranslateOptions from "./TranslateOptions";
 import SubmitButton from "./SubmitButton";
 import ErrorDisplay from "./ErrorDisplay";
+import RateLimitStatus from "./RateLimitStatus";
 
 /**
  * Input Section Component
@@ -82,6 +83,9 @@ const InputSection = ({
                     )}
                 </div>
             </div>
+
+            {/* Rate Limit Status */}
+            <RateLimitStatus endpoint={activeTab} />
 
             {/* Error Display */}
             <ErrorDisplay error={error} />

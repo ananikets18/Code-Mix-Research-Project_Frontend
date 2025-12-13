@@ -1,15 +1,87 @@
 // Background Service Worker
 
+// Simple Rate Limiter for Extension
+class ExtensionRateLimiter {
+    constructor(maxRequests, timeWindowMs) {
+        this.maxRequests = maxRequests;
+        this.timeWindowMs = timeWindowMs;
+        this.requests = new Map();
+    }
+
+    checkLimit(endpoint) {
+        const now = Date.now();
+        if (!this.requests.has(endpoint)) {
+            this.requests.set(endpoint, []);
+        }
+
+        const requestHistory = this.requests.get(endpoint);
+        const validRequests = requestHistory.filter(
+            (timestamp) => now - timestamp < this.timeWindowMs
+        );
+        this.requests.set(endpoint, validRequests);
+
+        if (validRequests.length >= this.maxRequests) {
+            const oldestRequest = Math.min(...validRequests);
+            const retryAfter = Math.ceil((oldestRequest + this.timeWindowMs - now) / 1000);
+            return { allowed: false, retryAfter };
+        }
+
+        return { allowed: true, retryAfter: null };
+    }
+
+    recordRequest(endpoint) {
+        const now = Date.now();
+        if (!this.requests.has(endpoint)) {
+            this.requests.set(endpoint, []);
+        }
+        const requestHistory = this.requests.get(endpoint);
+        requestHistory.push(now);
+        const validRequests = requestHistory.filter(
+            (timestamp) => now - timestamp < this.timeWindowMs
+        );
+        this.requests.set(endpoint, validRequests);
+    }
+}
+
+// Create rate limiter: 100 requests per minute for extension
+const rateLimiter = new ExtensionRateLimiter(100, 60 * 1000);
+
 // Listen for messages from content scripts
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === 'analyzeText') {
+        // Check rate limit
+        const limitCheck = rateLimiter.checkLimit('analyze');
+        if (!limitCheck.allowed) {
+            sendResponse({
+                success: false,
+                error: `Rate limit exceeded. Please wait ${limitCheck.retryAfter} seconds.`
+            });
+            return true;
+        }
+
         analyzeText(request.text)
-            .then(result => sendResponse({ success: true, data: result }))
+            .then(result => {
+                rateLimiter.recordRequest('analyze');
+                sendResponse({ success: true, data: result });
+            })
             .catch(error => sendResponse({ success: false, error: error.message }));
         return true; // Will respond asynchronously
     } else if (request.action === 'translateText') {
+        // Check rate limit
+        const limitCheck = rateLimiter.checkLimit('translate');
+        if (!limitCheck.allowed) {
+            sendResponse({
+                success: false,
+                error: `Rate limit exceeded. Please wait ${limitCheck.retryAfter} seconds.`
+            });
+            return true;
+        }
+
         translateText(request.text, request.sourceLang, request.targetLang)
-            .then(result => sendResponse({ success: true, data: result }))
+            .then(result => {
+                rateLimiter.recordRequest('translate');
+                sendResponse({ success: true, data: result });
+            })
             .catch(error => sendResponse({ success: false, error: error.message }));
         return true;
     }

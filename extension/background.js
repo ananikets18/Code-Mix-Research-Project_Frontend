@@ -1,4 +1,5 @@
-// Background Service Worker
+/* global chrome */
+// Background Service Worker for Manifest V3
 
 // Simple Rate Limiter for Extension
 class ExtensionRateLimiter {
@@ -56,15 +57,19 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 success: false,
                 error: `Rate limit exceeded. Please wait ${limitCheck.retryAfter} seconds.`
             });
-            return true;
+            return false; // Synchronous response
         }
 
-        analyzeText(request.text)
-            .then(result => {
+        // Handle async operation properly
+        (async () => {
+            try {
+                const result = await analyzeText(request.text);
                 rateLimiter.recordRequest('analyze');
                 sendResponse({ success: true, data: result });
-            })
-            .catch(error => sendResponse({ success: false, error: error.message }));
+            } catch (error) {
+                sendResponse({ success: false, error: error.message });
+            }
+        })();
         return true; // Will respond asynchronously
     } else if (request.action === 'translateText') {
         // Check rate limit
@@ -74,17 +79,22 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 success: false,
                 error: `Rate limit exceeded. Please wait ${limitCheck.retryAfter} seconds.`
             });
-            return true;
+            return false; // Synchronous response
         }
 
-        translateText(request.text, request.sourceLang, request.targetLang)
-            .then(result => {
+        // Handle async operation properly
+        (async () => {
+            try {
+                const result = await translateText(request.text, request.sourceLang, request.targetLang);
                 rateLimiter.recordRequest('translate');
                 sendResponse({ success: true, data: result });
-            })
-            .catch(error => sendResponse({ success: false, error: error.message }));
-        return true;
+            } catch (error) {
+                sendResponse({ success: false, error: error.message });
+            }
+        })();
+        return true; // Will respond asynchronously
     }
+    return false; // No matching action
 });
 
 async function analyzeText(text) {
@@ -142,8 +152,9 @@ async function translateText(text, sourceLang = 'auto', targetLang = 'en') {
     }
 }
 
-function updateStats(data) {
-    chrome.storage.local.get(['stats'], function (result) {
+async function updateStats(data) {
+    try {
+        const result = await chrome.storage.local.get(['stats']);
         const stats = result.stats || { analyzed: 0, toxic: 0 };
         stats.analyzed++;
 
@@ -155,6 +166,8 @@ function updateStats(data) {
             }
         }
 
-        chrome.storage.local.set({ stats: stats });
-    });
+        await chrome.storage.local.set({ stats: stats });
+    } catch (error) {
+        console.error('Failed to update stats:', error);
+    }
 }

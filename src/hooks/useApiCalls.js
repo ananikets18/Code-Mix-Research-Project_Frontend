@@ -137,7 +137,6 @@ export const useAnalyzeText = () => {
                     timeout: 45000, // Increased to 45 seconds for slow connections
                     headers: {
                         "Content-Type": "application/json",
-                        "Accept-Encoding": "gzip, deflate", // Enable compression
                     },
                     cancelToken: cancelTokenSourceRef.current.token,
                     // Add retry logic
@@ -229,7 +228,13 @@ export const useAnalyzeText = () => {
         }
     }, [startProgressSimulation, stopProgressSimulation]);
 
-    return { loading, result, error, progress, analyzeText };
+    const clearResults = useCallback(() => {
+        setResult(null);
+        setError("");
+        setProgress(0);
+    }, []);
+
+    return { loading, result, error, progress, analyzeText, clearResults };
 };
 
 /**
@@ -344,7 +349,6 @@ export const useTranslateText = () => {
                         timeout: 45000,
                         headers: {
                             "Content-Type": "application/json",
-                            "Accept-Encoding": "gzip, deflate",
                         },
                         cancelToken: cancelTokenSourceRef.current.token,
                         validateStatus: (status) =>
@@ -423,5 +427,11 @@ export const useTranslateText = () => {
         [startProgressSimulation, stopProgressSimulation]
     );
 
-    return { loading, result, error, progress, translateText };
+    const clearResults = useCallback(() => {
+        setResult(null);
+        setError("");
+        setProgress(0);
+    }, []);
+
+    return { loading, result, error, progress, translateText, clearResults };
 };

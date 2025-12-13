@@ -2,56 +2,165 @@
 <html>
 
 <head>
+  <meta charset="UTF-8">
   <title>Code-Mix Analyzer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="popup.css">
 </head>
 
 <body>
   <div class="container">
+    <!-- Gradient Header -->
     <div class="header">
-      <h2>Code-Mix Analyzer</h2>
-      <div class="status-indicator" id="statusIndicator"></div>
+      <div class="header-content">
+        <div class="logo">
+          <span class="logo-icon">🌐</span>
+          <div>
+            <h1>Code-Mix Analyzer</h1>
+            <p class="subtitle">Real-time NLP Analysis</p>
+          </div>
+        </div>
+        <div class="status-badge" id="statusBadge">
+          <span class="status-dot" id="statusDot"></span>
+          <span class="status-text" id="statusText">Checking...</span>
+        </div>
+      </div>
     </div>
 
+    <!-- Main Content -->
     <div class="content">
-      <div class="setting-item">
-        <label class="switch">
-          <input type="checkbox" id="enableExtension" checked>
-          <span class="slider round"></span>
-        </label>
-        <span>Enable Analysis</span>
-      </div>
+      <!-- Settings Section -->
+      <div class="section">
+        <h2 class="section-title">
+          <span class="section-icon">⚙️</span>
+          Settings
+        </h2>
 
-      <div class="setting-item">
-        <label class="switch">
-          <input type="checkbox" id="blurToxic" checked>
-          <span class="slider round"></span>
-        </label>
-        <span>Blur Toxic Content</span>
-      </div>
-
-      <div class="setting-item-slider">
-        <label for="toxicityThreshold">Toxicity Threshold: <span id="thresholdValue">70</span>%</label>
-        <input type="range" id="toxicityThreshold" min="0" max="100" value="70" class="slider-input">
-        <small>Hide posts with toxicity above this level</small>
-      </div>
-
-      <div class="stats">
-        <div class="stat-box">
-          <span class="stat-value" id="analyzedCount">0</span>
-          <span class="stat-label">Analyzed</span>
+        <div class="setting-card">
+          <div class="setting-header">
+            <div class="setting-info">
+              <span class="setting-icon">🔧</span>
+              <span class="setting-label">Enable Analysis</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="enableExtension" checked>
+              <span class="slider round"></span>
+            </label>
+          </div>
+          <p class="setting-description">Automatically analyze posts on social media</p>
         </div>
-        <div class="stat-box">
-          <span class="stat-value" id="toxicCount">0</span>
-          <span class="stat-label">Toxic</span>
+
+        <div class="setting-card">
+          <div class="setting-header">
+            <div class="setting-info">
+              <span class="setting-icon">🛡️</span>
+              <span class="setting-label">Blur Toxic Content</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="blurToxic" checked>
+              <span class="slider round"></span>
+            </label>
+          </div>
+          <p class="setting-description">Hide potentially harmful content</p>
+        </div>
+      </div>
+
+      <!-- Threshold Section -->
+      <div class="section">
+        <h2 class="section-title">
+          <span class="section-icon">📊</span>
+          Toxicity Threshold
+        </h2>
+
+        <div class="threshold-card">
+          <div class="threshold-header">
+            <span class="threshold-label">Current Level</span>
+            <span class="threshold-value" id="thresholdValue">70%</span>
+          </div>
+          <input type="range" id="toxicityThreshold" min="0" max="100" value="70" class="slider-input">
+          <div class="threshold-labels">
+            <span>Lenient</span>
+            <span>Moderate</span>
+            <span>Strict</span>
+          </div>
+          <p class="threshold-description">Hide posts with toxicity above this level</p>
+        </div>
+      </div>
+
+      <!-- Statistics Section -->
+      <div class="section">
+        <h2 class="section-title">
+          <span class="section-icon">📈</span>
+          Statistics
+        </h2>
+
+        <div class="stats-grid">
+          <div class="stat-card stat-primary">
+            <div class="stat-icon">📝</div>
+            <div class="stat-content">
+              <span class="stat-value" id="analyzedCount">0</span>
+              <span class="stat-label">Analyzed</span>
+            </div>
+            <div class="stat-progress">
+              <div class="stat-progress-bar" style="width: 100%"></div>
+            </div>
+          </div>
+
+          <div class="stat-card stat-danger">
+            <div class="stat-icon">⚠️</div>
+            <div class="stat-content">
+              <span class="stat-value" id="toxicCount">0</span>
+              <span class="stat-label">Toxic</span>
+            </div>
+            <div class="stat-progress">
+              <div class="stat-progress-bar stat-progress-danger" id="toxicProgress" style="width: 0%"></div>
+            </div>
+          </div>
+
+          <div class="stat-card stat-success">
+            <div class="stat-icon">✅</div>
+            <div class="stat-content">
+              <span class="stat-value" id="safeCount">0</span>
+              <span class="stat-label">Safe</span>
+            </div>
+            <div class="stat-progress">
+              <div class="stat-progress-bar stat-progress-success" id="safeProgress" style="width: 100%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="section">
+        <h2 class="section-title">
+          <span class="section-icon">🚀</span>
+          Quick Actions
+        </h2>
+
+        <div class="actions-grid">
+          <a href="#" id="openDashboard" class="action-button action-primary">
+            <span class="action-icon">🌐</span>
+            <span>Open Dashboard</span>
+          </a>
+          <button id="clearStats" class="action-button action-secondary">
+            <span class="action-icon">🔄</span>
+            <span>Reset Stats</span>
+          </button>
         </div>
       </div>
     </div>
 
+    <!-- Footer -->
     <div class="footer">
-      <a href="#" id="openDashboard">Open Website</a>
+      <p class="footer-text">
+        Powered by <strong>DigitalOcean</strong> NLP API
+      </p>
+      <p class="footer-version">v1.0.0</p>
     </div>
   </div>
+
   <script src="popup.js"></script>
 </body>
 

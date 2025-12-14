@@ -178,6 +178,15 @@ export const ErrorTracking = {
       data: details,
       level: 'info'
     });
+  },
+
+  // Generic error logging
+  logError: (error, context = {}) => {
+    captureException(error, {
+      type: 'GENERAL_ERROR',
+      ...context,
+      timestamp: new Date().toISOString()
+    });
   }
 };
 

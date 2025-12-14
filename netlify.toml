@@ -5,7 +5,7 @@
 # API Proxy to bypass CORS issues
 [[redirects]]
   from = "/api/*"
-  to = "https://thequoteshub.info/:splat"
+  to = "https://www.thequoteshub.info/:splat"
   status = 200
   force = true
   headers = {X-From = "Netlify"}

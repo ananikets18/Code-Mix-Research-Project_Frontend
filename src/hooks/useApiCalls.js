@@ -158,9 +158,18 @@ export const useAnalyzeText = () => {
             });
 
             if (response.status !== 200) {
-                throw new Error(
-                    response.data?.error || `Server returned status ${response.status}`
-                );
+                let errorMsg = response.data?.error || `Server returned status ${response.status}`;
+                
+                // Provide more helpful error messages for common status codes
+                if (response.status === 502) {
+                    errorMsg = 'Backend server is temporarily unavailable. Please try again in a moment.';
+                } else if (response.status === 503) {
+                    errorMsg = 'Service temporarily unavailable. The server may be overloaded.';
+                } else if (response.status === 504) {
+                    errorMsg = 'Gateway timeout. The request took too long to process.';
+                }
+                
+                throw new Error(errorMsg);
             }
 
             // Cache the successful result
@@ -208,10 +217,18 @@ export const useAnalyzeText = () => {
 
             // Track error
             Analytics.analyzeError(errorMessage);
-            ErrorTracking.logError(err, {
-                context: "analyze_text",
-                textLength: text.length,
-            });
+            
+            // Use appropriate error tracking method based on error type
+            if (err.response) {
+                ErrorTracking.apiError('/analyze', err, err.response.status);
+            } else if (err.message?.includes('timeout') || err.code === 'ECONNABORTED') {
+                ErrorTracking.networkError(err);
+            } else {
+                ErrorTracking.logError(err, {
+                    context: "analyze_text",
+                    textLength: text.length,
+                });
+            }
 
             // Log detailed error in development
             if (process.env.NODE_ENV === "development") {
@@ -411,9 +428,9 @@ export const useTranslateText = () => {
 
                 setError(errorMessage);
                 Analytics.translateError(errorMessage);
-                ErrorTracking.logError(err, {
-                    context: "translate_text",
-                });
+                
+                // Use appropriate error tracking method based on error type
+                if (err.response) {\n                    ErrorTracking.apiError('/translate', err, err.response.status);\n                } else if (err.message?.includes('timeout') || err.code === 'ECONNABORTED') {\n                    ErrorTracking.networkError(err);\n                } else {\n                    ErrorTracking.logError(err, {\n                        context: \"translate_text\",\n                    });\n                }
 
                 if (process.env.NODE_ENV === "development") {
                     console.error("❌ Translation error:", errorMessage);

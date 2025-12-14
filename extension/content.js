@@ -1,3 +1,4 @@
+/* global chrome */
 // Content Script - Enhanced with Multiple Features
 
 let isEnabled = true;
@@ -15,9 +16,36 @@ chrome.storage.local.get(['enabled', 'blurToxic', 'toxicityThreshold'], function
 
 // Listen for settings changes
 chrome.storage.onChanged.addListener(function (changes, namespace) {
-    if (changes.enabled) isEnabled = changes.enabled.newValue;
-    if (changes.blurToxic) blurToxic = changes.blurToxic.newValue;
-    if (changes.toxicityThreshold) toxicityThreshold = changes.toxicityThreshold.newValue;
+    if (changes.enabled) {
+        isEnabled = changes.enabled.newValue;
+        // If disabled, remove all indicators
+        if (!isEnabled) {
+            document.querySelectorAll('.codemix-indicator-container').forEach(el => el.remove());
+        }
+    }
+    
+    if (changes.blurToxic) {
+        const oldValue = blurToxic;
+        blurToxic = changes.blurToxic.newValue;
+        
+        // Update existing blurred elements
+        if (oldValue !== blurToxic) {
+            document.querySelectorAll('[data-codemix-id]').forEach(element => {
+                if (element.style.filter === 'blur(5px)' || element.style.filter === 'none') {
+                    if (blurToxic) {
+                        element.style.filter = 'blur(5px)';
+                    } else {
+                        element.style.filter = 'none';
+                    }
+                }
+            });
+        }
+    }
+    
+    if (changes.toxicityThreshold) {
+        toxicityThreshold = changes.toxicityThreshold.newValue;
+        // Note: Existing elements keep their classification, only new ones use new threshold
+    }
 });
 
 // Updated selectors for multiple platforms

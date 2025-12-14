@@ -174,23 +174,27 @@ async function translateText(text, sourceLang = 'auto', targetLang = 'en') {
 
 async function updateStats(data) {
     try {
-        const result = await chrome.storage.local.get(['analyzedCount', 'toxicCount']);
-        let analyzedCount = result.analyzedCount || 0;
-        let toxicCount = result.toxicCount || 0;
-        
-        analyzedCount++;
+        // Use a lock pattern to prevent race conditions
+        await new Promise((resolve) => {
+            chrome.storage.local.get(['analyzedCount', 'toxicCount'], (result) => {
+                let analyzedCount = result.analyzedCount || 0;
+                let toxicCount = result.toxicCount || 0;
+                
+                analyzedCount++;
 
-        if (data.toxicity) {
-            // Check if any toxicity score is high (> 0.7)
-            const isToxic = Object.values(data.toxicity).some(score => score > 0.7);
-            if (isToxic) {
-                toxicCount++;
-            }
-        }
+                if (data.toxicity) {
+                    // Check if any toxicity score is high (> 0.7)
+                    const isToxic = Object.values(data.toxicity).some(score => score > 0.7);
+                    if (isToxic) {
+                        toxicCount++;
+                    }
+                }
 
-        await chrome.storage.local.set({ 
-            analyzedCount: analyzedCount,
-            toxicCount: toxicCount 
+                chrome.storage.local.set({ 
+                    analyzedCount: analyzedCount,
+                    toxicCount: toxicCount 
+                }, resolve);
+            });
         });
     } catch (error) {
         console.error('Failed to update stats:', error);

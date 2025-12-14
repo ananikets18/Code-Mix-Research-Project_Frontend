@@ -1,3 +1,4 @@
+/* global chrome */
 // Enhanced Popup Script with Modern Features
 
 // DOM Elements - with null checks
@@ -22,13 +23,20 @@ if (!enableExtension || !analyzedCount || !toxicCount) {
 
 // Load settings and stats
 function loadSettings() {
+    if (!enableExtension || !blurToxic || !toxicityThreshold) {
+        console.error('Cannot load settings - DOM elements missing');
+        return;
+    }
+    
     chrome.storage.local.get(
         ['enabled', 'blurToxic', 'toxicityThreshold', 'analyzedCount', 'toxicCount'],
         function (result) {
-            enableExtension.checked = result.enabled !== false;
-            blurToxic.checked = result.blurToxic !== false;
-            toxicityThreshold.value = (result.toxicityThreshold || 0.7) * 100;
-            updateThresholdDisplay(toxicityThreshold.value);
+            if (enableExtension) enableExtension.checked = result.enabled !== false;
+            if (blurToxic) blurToxic.checked = result.blurToxic !== false;
+            if (toxicityThreshold) {
+                toxicityThreshold.value = (result.toxicityThreshold || 0.7) * 100;
+                updateThresholdDisplay(toxicityThreshold.value);
+            }
 
             const analyzed = result.analyzedCount || 0;
             const toxic = result.toxicCount || 0;
@@ -42,30 +50,36 @@ function loadSettings() {
 
 // Update threshold display
 function updateThresholdDisplay(value) {
-    thresholdValue.textContent = Math.round(value) + '%';
+    if (thresholdValue) {
+        thresholdValue.textContent = Math.round(value) + '%';
+    }
 }
 
 // Update statistics with animations
 function updateStats(analyzed, toxic, safe) {
+    if (!analyzedCount || !toxicCount || !safeCount) return;
+    
     // Animate numbers
     animateValue(analyzedCount, 0, analyzed, 500);
     animateValue(toxicCount, 0, toxic, 500);
     animateValue(safeCount, 0, safe, 500);
 
     // Update progress bars
-    if (analyzed > 0) {
+    if (analyzed > 0 && toxicProgress && safeProgress) {
         const toxicPercent = (toxic / analyzed) * 100;
         const safePercent = (safe / analyzed) * 100;
 
         setTimeout(() => {
-            toxicProgress.style.width = toxicPercent + '%';
-            safeProgress.style.width = safePercent + '%';
+            if (toxicProgress) toxicProgress.style.width = toxicPercent + '%';
+            if (safeProgress) safeProgress.style.width = safePercent + '%';
         }, 100);
     }
 }
 
 // Animate number counting
 function animateValue(element, start, end, duration) {
+    if (!element) return;
+    
     const range = end - start;
     const increment = range / (duration / 16);
     let current = start;
@@ -76,7 +90,7 @@ function animateValue(element, start, end, duration) {
             current = end;
             clearInterval(timer);
         }
-        element.textContent = Math.round(current);
+        if (element) element.textContent = Math.round(current);
     }, 16);
 }
 
@@ -154,13 +168,92 @@ if (openDashboard) {
 
 if (clearStats) {
     clearStats.addEventListener('click', function () {
-    if (confirm('Reset all statistics? This cannot be undone.')) {
+    // Use custom confirmation instead of browser confirm
+    showConfirmation('Reset all statistics? This cannot be undone.', function() {
         chrome.storage.local.set({ analyzedCount: 0, toxicCount: 0 }, function () {
             updateStats(0, 0, 0);
             showToast('🔄 Statistics reset');
         });
-    }
     });
+    });
+}
+
+// Custom confirmation dialog
+function showConfirmation(message, onConfirm) {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+    `;
+    
+    const dialog = document.createElement('div');
+    dialog.style.cssText = `
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        min-width: 250px;
+        max-width: 90%;
+    `;
+    
+    const messageEl = document.createElement('p');
+    messageEl.textContent = message;
+    messageEl.style.cssText = `
+        margin: 0 0 20px 0;
+        color: #333;
+        font-size: 14px;
+    `;
+    
+    const buttonContainer = document.createElement('div');
+    buttonContainer.style.cssText = `
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+    `;
+    
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.style.cssText = `
+        padding: 8px 16px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        background: white;
+        cursor: pointer;
+        font-size: 13px;
+    `;
+    
+    const confirmBtn = document.createElement('button');
+    confirmBtn.textContent = 'Confirm';
+    confirmBtn.style.cssText = `
+        padding: 8px 16px;
+        border: none;
+        border-radius: 6px;
+        background: #ef4444;
+        color: white;
+        cursor: pointer;
+        font-size: 13px;
+    `;
+    
+    cancelBtn.addEventListener('click', () => overlay.remove());
+    confirmBtn.addEventListener('click', () => {
+        overlay.remove();
+        onConfirm();
+    });
+    
+    buttonContainer.appendChild(cancelBtn);
+    buttonContainer.appendChild(confirmBtn);
+    dialog.appendChild(messageEl);
+    dialog.appendChild(buttonContainer);
+    overlay.appendChild(dialog);
+    document.body.appendChild(overlay);
 }
 
 // Simple toast notification
@@ -241,7 +334,10 @@ setInterval(() => {
         const safe = analyzed - toxic;
 
         // Only update if values changed (use strict equality)
-        if (parseInt(analyzedCount.textContent) !== analyzed || parseInt(toxicCount.textContent) !== toxic) {
+        const currentAnalyzed = parseInt(analyzedCount.textContent) || 0;
+        const currentToxic = parseInt(toxicCount.textContent) || 0;
+        
+        if (currentAnalyzed !== analyzed || currentToxic !== toxic) {
             updateStats(analyzed, toxic, safe);
         }
     });

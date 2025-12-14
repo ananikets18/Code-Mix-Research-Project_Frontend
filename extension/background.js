@@ -154,19 +154,24 @@ async function translateText(text, sourceLang = 'auto', targetLang = 'en') {
 
 async function updateStats(data) {
     try {
-        const result = await chrome.storage.local.get(['stats']);
-        const stats = result.stats || { analyzed: 0, toxic: 0 };
-        stats.analyzed++;
+        const result = await chrome.storage.local.get(['analyzedCount', 'toxicCount']);
+        let analyzedCount = result.analyzedCount || 0;
+        let toxicCount = result.toxicCount || 0;
+        
+        analyzedCount++;
 
         if (data.toxicity) {
             // Check if any toxicity score is high (> 0.7)
             const isToxic = Object.values(data.toxicity).some(score => score > 0.7);
             if (isToxic) {
-                stats.toxic++;
+                toxicCount++;
             }
         }
 
-        await chrome.storage.local.set({ stats: stats });
+        await chrome.storage.local.set({ 
+            analyzedCount: analyzedCount,
+            toxicCount: toxicCount 
+        });
     } catch (error) {
         console.error('Failed to update stats:', error);
     }

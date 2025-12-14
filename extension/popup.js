@@ -120,7 +120,7 @@ toxicityThreshold.addEventListener('input', function () {
 
 openDashboard.addEventListener('click', function (e) {
     e.preventDefault();
-    chrome.tabs.create({ url: 'https://code-mix-for-social-media-frontend.netlify.app/' });
+    chrome.tabs.create({ url: 'https://code-mix-for-social-media.netlify.app/' });
 });
 
 clearStats.addEventListener('click', function () {

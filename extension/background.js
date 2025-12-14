@@ -99,6 +99,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 async function analyzeText(text) {
     try {
+        // Add timeout to prevent hanging requests
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+        
         const response = await fetch('https://thequoteshub.info/analyze', {
             method: 'POST',
             headers: {
@@ -107,8 +111,11 @@ async function analyzeText(text) {
             body: JSON.stringify({
                 text: text,
                 compact_mode: true
-            })
+            }),
+            signal: controller.signal
         });
+        
+        clearTimeout(timeoutId);
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -121,6 +128,9 @@ async function analyzeText(text) {
 
         return data;
     } catch (error) {
+        if (error.name === 'AbortError') {
+            throw new Error('Request timeout - server took too long to respond');
+        }
         console.error('Analysis error:', error);
         throw error;
     }
@@ -128,6 +138,10 @@ async function analyzeText(text) {
 
 async function translateText(text, sourceLang = 'auto', targetLang = 'en') {
     try {
+        // Add timeout to prevent hanging requests
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+        
         const response = await fetch('https://thequoteshub.info/translate', {
             method: 'POST',
             headers: {
@@ -137,8 +151,11 @@ async function translateText(text, sourceLang = 'auto', targetLang = 'en') {
                 text: text,
                 source_lang: sourceLang,
                 target_lang: targetLang
-            })
+            }),
+            signal: controller.signal
         });
+        
+        clearTimeout(timeoutId);
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -147,6 +164,9 @@ async function translateText(text, sourceLang = 'auto', targetLang = 'en') {
         const data = await response.json();
         return data;
     } catch (error) {
+        if (error.name === 'AbortError') {
+            throw new Error('Translation timeout - server took too long to respond');
+        }
         console.error('Translation error:', error);
         throw error;
     }

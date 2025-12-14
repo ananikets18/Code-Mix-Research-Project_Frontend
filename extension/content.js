@@ -89,6 +89,13 @@ function processNode(node) {
         addIndicator(element, 'loading');
 
         chrome.runtime.sendMessage({ action: 'analyzeText', text: text }, response => {
+            // Check for runtime errors (extension context invalidated)
+            if (chrome.runtime.lastError) {
+                console.error('Runtime error:', chrome.runtime.lastError.message);
+                addIndicator(element, 'error');
+                return;
+            }
+            
             if (response && response.success) {
                 handleAnalysisResult(element, response.data);
             } else {
@@ -120,10 +127,14 @@ function handleAnalysisResult(element, data) {
         element.style.cursor = 'pointer';
         element.title = 'Click to reveal toxic content';
 
-        element.addEventListener('click', (e) => {
-            e.stopPropagation();
-            element.style.filter = element.style.filter === 'none' ? 'blur(5px)' : 'none';
-        }, { once: false });
+        // Only add listener if not already added
+        if (!element.dataset.blurListenerAdded) {
+            element.dataset.blurListenerAdded = 'true';
+            element.addEventListener('click', (e) => {
+                e.stopPropagation();
+                element.style.filter = element.style.filter === 'none' ? 'blur(5px)' : 'none';
+            });
+        }
     }
 }
 
@@ -183,8 +194,16 @@ function addIndicator(element, status, data = null) {
             showDetailedPanel(element, data);
         });
     } else if (status === 'error') {
-        badge.innerHTML = '❓';
-        badge.title = 'Analysis Failed';
+        badge.innerHTML = '❌';
+        badge.title = 'Analysis Failed - Click to retry';
+        badge.style.cursor = 'pointer';
+        
+        // Add retry functionality
+        badge.addEventListener('click', (e) => {
+            e.stopPropagation();
+            analyzedElements.delete(element.dataset.codemixId);
+            processNode(element);
+        });
     }
 
     container.appendChild(badge);
@@ -338,6 +357,12 @@ function showTranslation(element, data) {
             sourceLang: 'auto',
             targetLang: 'en'
         }, response => {
+            if (chrome.runtime.lastError) {
+                console.error('Runtime error:', chrome.runtime.lastError.message);
+                displayTranslationTooltip(element, 'Translation unavailable');
+                return;
+            }
+            
             if (response && response.success) {
                 const translation = response.data.translated_text || response.data.translation;
                 displayTranslationTooltip(element, translation);

@@ -1,6 +1,6 @@
 // Enhanced Popup Script with Modern Features
 
-// DOM Elements
+// DOM Elements - with null checks
 const enableExtension = document.getElementById('enableExtension');
 const blurToxic = document.getElementById('blurToxic');
 const toxicityThreshold = document.getElementById('toxicityThreshold');
@@ -14,6 +14,11 @@ const openDashboard = document.getElementById('openDashboard');
 const clearStats = document.getElementById('clearStats');
 const toxicProgress = document.getElementById('toxicProgress');
 const safeProgress = document.getElementById('safeProgress');
+
+// Verify critical elements exist
+if (!enableExtension || !analyzedCount || !toxicCount) {
+    console.error('Critical DOM elements missing');
+}
 
 // Load settings and stats
 function loadSettings() {
@@ -77,21 +82,38 @@ function animateValue(element, start, end, duration) {
 
 // Check API status
 function checkAPIStatus() {
-    const apiUrl = 'https://thequoteshub.info/';
+    if (!statusDot || !statusText) return;
+    
+    const apiUrl = 'https://thequoteshub.info/analyze';
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-    fetch(apiUrl, { method: 'HEAD', mode: 'no-cors' })
-        .then(() => {
-            statusDot.classList.add('connected');
-            statusText.textContent = 'Connected';
+    fetch(apiUrl, { 
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: 'test', compact_mode: true }),
+        signal: controller.signal
+    })
+        .then(response => {
+            clearTimeout(timeoutId);
+            if (response.ok) {
+                statusDot.classList.add('connected');
+                statusText.textContent = 'Connected';
+            } else {
+                statusDot.classList.remove('connected');
+                statusText.textContent = 'Offline';
+            }
         })
         .catch(() => {
+            clearTimeout(timeoutId);
             statusDot.classList.remove('connected');
             statusText.textContent = 'Offline';
         });
 }
 
 // Event Listeners
-enableExtension.addEventListener('change', function () {
+if (enableExtension) {
+    enableExtension.addEventListener('change', function () {
     chrome.storage.local.set({ enabled: this.checked });
 
     // Show feedback
@@ -100,9 +122,11 @@ enableExtension.addEventListener('change', function () {
     } else {
         showToast('⏸️ Extension paused');
     }
-});
+    });
+}
 
-blurToxic.addEventListener('change', function () {
+if (blurToxic) {
+    blurToxic.addEventListener('change', function () {
     chrome.storage.local.set({ blurToxic: this.checked });
 
     if (this.checked) {
@@ -110,27 +134,34 @@ blurToxic.addEventListener('change', function () {
     } else {
         showToast('👁️ Blur disabled');
     }
-});
+    });
+}
 
-toxicityThreshold.addEventListener('input', function () {
+if (toxicityThreshold) {
+    toxicityThreshold.addEventListener('input', function () {
     const value = this.value;
     updateThresholdDisplay(value);
     chrome.storage.local.set({ toxicityThreshold: value / 100 });
-});
+    });
+}
 
-openDashboard.addEventListener('click', function (e) {
+if (openDashboard) {
+    openDashboard.addEventListener('click', function (e) {
     e.preventDefault();
     chrome.tabs.create({ url: 'https://code-mix-for-social-media.netlify.app/' });
-});
+    });
+}
 
-clearStats.addEventListener('click', function () {
+if (clearStats) {
+    clearStats.addEventListener('click', function () {
     if (confirm('Reset all statistics? This cannot be undone.')) {
         chrome.storage.local.set({ analyzedCount: 0, toxicCount: 0 }, function () {
             updateStats(0, 0, 0);
             showToast('🔄 Statistics reset');
         });
     }
-});
+    });
+}
 
 // Simple toast notification
 function showToast(message) {
@@ -202,13 +233,15 @@ loadSettings();
 
 // Refresh stats every 5 seconds
 setInterval(() => {
+    if (!analyzedCount || !toxicCount) return;
+    
     chrome.storage.local.get(['analyzedCount', 'toxicCount'], function (result) {
         const analyzed = result.analyzedCount || 0;
         const toxic = result.toxicCount || 0;
         const safe = analyzed - toxic;
 
-        // Only update if values changed
-        if (analyzedCount.textContent != analyzed || toxicCount.textContent != toxic) {
+        // Only update if values changed (use strict equality)
+        if (parseInt(analyzedCount.textContent) !== analyzed || parseInt(toxicCount.textContent) !== toxic) {
             updateStats(analyzed, toxic, safe);
         }
     });

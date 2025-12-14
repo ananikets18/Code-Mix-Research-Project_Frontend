@@ -103,7 +103,7 @@ async function analyzeText(text) {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
         
-        const response = await fetch('https://thequoteshub.info/analyze', {
+        const response = await fetch('https://www.thequoteshub.info/analyze', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -142,7 +142,7 @@ async function translateText(text, sourceLang = 'auto', targetLang = 'en') {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
         
-        const response = await fetch('https://thequoteshub.info/translate', {
+        const response = await fetch('https://www.thequoteshub.info/translate', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

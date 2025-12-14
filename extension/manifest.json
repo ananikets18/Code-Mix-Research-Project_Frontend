@@ -17,6 +17,7 @@
         "*://*.reddit.com/*",
         "*://*.linkedin.com/*",
         "https://thequoteshub.info/*",
+        "https://www.thequoteshub.info/*",
         "http://localhost:8000/*"
     ],
     "action": {

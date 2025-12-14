@@ -44,7 +44,7 @@ export const StatusProvider = ({ children }) => {
       setError(null);
 
       const response = await axios.get(`${API_BASE_URL}/status`, {
-        timeout: 10000,
+        timeout: 20000, // Increased from 10s to 20s
         headers: {
           'Content-Type': 'application/json',
         },

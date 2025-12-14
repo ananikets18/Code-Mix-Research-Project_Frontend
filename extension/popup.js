@@ -94,19 +94,24 @@ function animateValue(element, start, end, duration) {
     }, 16);
 }
 
-// Check API status
+// Check API status with better error handling
 function checkAPIStatus() {
     if (!statusDot || !statusText) return;
     
-    const apiUrl = 'https://thequoteshub.info/analyze';
+    // Use www subdomain to match .env configuration
+    const apiUrl = 'https://www.thequoteshub.info/health';
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // Increased to 15s
+
+    // Set status to checking
+    statusText.textContent = 'Checking...';
+    statusDot.classList.remove('connected');
 
     fetch(apiUrl, { 
-        method: 'POST',
+        method: 'GET',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: 'test', compact_mode: true }),
-        signal: controller.signal
+        signal: controller.signal,
+        cache: 'no-cache'
     })
         .then(response => {
             clearTimeout(timeoutId);
@@ -115,13 +120,23 @@ function checkAPIStatus() {
                 statusText.textContent = 'Connected';
             } else {
                 statusDot.classList.remove('connected');
-                statusText.textContent = 'Offline';
+                statusText.textContent = `Error ${response.status}`;
             }
         })
-        .catch(() => {
+        .catch((error) => {
             clearTimeout(timeoutId);
             statusDot.classList.remove('connected');
-            statusText.textContent = 'Offline';
+            
+            // More descriptive error messages
+            if (error.name === 'AbortError') {
+                statusText.textContent = 'Timeout';
+            } else if (error.message.includes('Failed to fetch')) {
+                statusText.textContent = 'Network Error';
+            } else {
+                statusText.textContent = 'Offline';
+            }
+            
+            console.error('Backend status check failed:', error);
         });
 }
 

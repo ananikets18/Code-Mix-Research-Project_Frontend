@@ -102,8 +102,8 @@ async function analyzeText(text) {
         // Add timeout to prevent hanging requests
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
-        
-        const response = await fetch('https://www.thequoteshub.info/analyze', {
+
+        const response = await fetch('http://159.89.161.139:8000/analyze', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -114,7 +114,7 @@ async function analyzeText(text) {
             }),
             signal: controller.signal
         });
-        
+
         clearTimeout(timeoutId);
 
         if (!response.ok) {
@@ -141,8 +141,8 @@ async function translateText(text, sourceLang = 'auto', targetLang = 'en') {
         // Add timeout to prevent hanging requests
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
-        
-        const response = await fetch('https://www.thequoteshub.info/translate', {
+
+        const response = await fetch('http://159.89.161.139:8000/translate', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -154,7 +154,7 @@ async function translateText(text, sourceLang = 'auto', targetLang = 'en') {
             }),
             signal: controller.signal
         });
-        
+
         clearTimeout(timeoutId);
 
         if (!response.ok) {
@@ -179,7 +179,7 @@ async function updateStats(data) {
             chrome.storage.local.get(['analyzedCount', 'toxicCount'], (result) => {
                 let analyzedCount = result.analyzedCount || 0;
                 let toxicCount = result.toxicCount || 0;
-                
+
                 analyzedCount++;
 
                 if (data.toxicity) {
@@ -190,9 +190,9 @@ async function updateStats(data) {
                     }
                 }
 
-                chrome.storage.local.set({ 
+                chrome.storage.local.set({
                     analyzedCount: analyzedCount,
-                    toxicCount: toxicCount 
+                    toxicCount: toxicCount
                 }, resolve);
             });
         });

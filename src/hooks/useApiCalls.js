@@ -430,7 +430,15 @@ export const useTranslateText = () => {
                 Analytics.translateError(errorMessage);
                 
                 // Use appropriate error tracking method based on error type
-                if (err.response) {\n                    ErrorTracking.apiError('/translate', err, err.response.status);\n                } else if (err.message?.includes('timeout') || err.code === 'ECONNABORTED') {\n                    ErrorTracking.networkError(err);\n                } else {\n                    ErrorTracking.logError(err, {\n                        context: \"translate_text\",\n                    });\n                }
+                if (err.response) {
+                    ErrorTracking.apiError('/translate', err, err.response.status);
+                } else if (err.message?.includes('timeout') || err.code === 'ECONNABORTED') {
+                    ErrorTracking.networkError(err);
+                } else {
+                    ErrorTracking.logError(err, {
+                        context: "translate_text",
+                    });
+                }
 
                 if (process.env.NODE_ENV === "development") {
                     console.error("❌ Translation error:", errorMessage);

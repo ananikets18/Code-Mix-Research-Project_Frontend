@@ -16,8 +16,7 @@
         "*://*.youtube.com/*",
         "*://*.reddit.com/*",
         "*://*.linkedin.com/*",
-        "https://thequoteshub.info/*",
-        "https://www.thequoteshub.info/*",
+        "https://159-89-161-139.nip.io/*",
         "http://localhost:8000/*"
     ],
     "action": {

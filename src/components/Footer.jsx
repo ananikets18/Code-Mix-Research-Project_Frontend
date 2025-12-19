@@ -28,7 +28,7 @@ const Footer = () => {
           <p className="text-xs md:text-sm">
             API running on{" "}
             <code className="px-2 py-1 rounded bg-gray-100 dark:bg-gray-800 text-primary-600 dark:text-primary-400 border border-gray-300 dark:border-gray-700 break-words">
-              thequoteshub.info
+              159-89-161-139.nip.io
             </code>
           </p>
         </div>

@@ -98,8 +98,8 @@ function animateValue(element, start, end, duration) {
 function checkAPIStatus() {
     if (!statusDot || !statusText) return;
     
-    // Use www subdomain to match .env configuration
-    const apiUrl = 'https://www.thequoteshub.info/health';
+    // Use new HTTPS nip.io endpoint
+    const apiUrl = 'https://159-89-161-139.nip.io/health';
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15000); // Increased to 15s
 

@@ -17,7 +17,7 @@ This frontend project was bootstrapped with [Create React App](https://github.co
 python api.py
 ```
 
-The API should be running at `http://localhost:8000`.
+The API should be running at `http://localhost:8000` (local development) or `https://159-89-161-139.nip.io` (production).
 
 ### Run the Frontend
 

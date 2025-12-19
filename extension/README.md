@@ -42,7 +42,7 @@ This browser extension integrates with our NLP backend to provide instant analys
                    ▼
 ┌─────────────────────────────────────────────────────┐
 │  Backend API (DigitalOcean)                         │
-│  https://thequoteshub.info/                         │
+│  https://159-89-161-139.nip.io/                     │
 │  - /analyze - NLP analysis                          │
 │  - /translate - Translation service                 │
 └─────────────────────────────────────────────────────┘
@@ -286,7 +286,7 @@ chrome.storage.local.set({
 
 **1. Analysis Endpoint**
 ```
-POST https://thequoteshub.info/analyze
+POST https://159-89-161-139.nip.io/analyze
 Body: { text: "..." }
 Response: {
   sentiment: { label, confidence, all_probabilities },
@@ -299,14 +299,14 @@ Response: {
 
 **2. Translation Endpoint**
 ```
-POST https://thequoteshub.info/translate
+POST https://159-89-161-139.nip.io/translate
 Body: { text: "...", source_lang: "auto", target_lang: "en" }
 Response: { translated_text: "..." }
 ```
 
 **3. Health Check**
 ```
-GET https://thequoteshub.info/health
+GET https://159-89-161-139.nip.io/health
 Response: { status: "ok" }
 ```
 
@@ -348,7 +348,7 @@ Response: { status: "ok" }
 
 ### **Prerequisites**
 - Chrome/Edge browser
-- Backend API running at `https://thequoteshub.info/`
+- Backend API running at `https://159-89-161-139.nip.io/`
 
 ### **Testing**
 1. Make changes to extension files
@@ -372,7 +372,7 @@ This extension is part of the Code-Mix NLP Analyzer project.
 ## 🔗 Links
 
 - **Web Application**: https://code-mix-for-social-media.netlify.app/
-- **Backend API**: https://thequoteshub.info/
+- **Backend API**: https://159-89-161-139.nip.io/
 - **GitHub Repository**: [Your Repo Link]
 
 ---

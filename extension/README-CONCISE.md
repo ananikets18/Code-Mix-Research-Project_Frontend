@@ -49,7 +49,7 @@ Social Media Post → Extension Detects → Sends to Backend API
 - `background.js` - Handles API calls
 - `popup.js` - Settings interface
 
-**Backend API:** `https://thequoteshub.info/`
+**Backend API:** `https://159-89-161-139.nip.io/`
 
 ---
 
@@ -134,7 +134,7 @@ extension/
 ## 🔗 Links
 
 - **Web App**: https://code-mix-for-social-media.netlify.app/
-- **API**: https://thequoteshub.info/
+- **API**: https://159-89-161-139.nip.io/
 - **Full Documentation**: [README.md](README.md)
 
 ---

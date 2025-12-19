@@ -103,7 +103,7 @@ async function analyzeText(text) {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
-        const response = await fetch('http://159.89.161.139:8000/analyze', {
+        const response = await fetch('https://159-89-161-139.nip.io/analyze', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -142,7 +142,7 @@ async function translateText(text, sourceLang = 'auto', targetLang = 'en') {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
-        const response = await fetch('http://159.89.161.139:8000/translate', {
+        const response = await fetch('https://159-89-161-139.nip.io/translate', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

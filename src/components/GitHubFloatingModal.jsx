@@ -321,13 +321,13 @@ const GitHubFloatingModal = () => {
               </div>
 
               {/* Footer Note - Responsive */}
-              <div className="text-center pt-1 xs:pt-1.5 sm:pt-2">
+              {/* <div className="text-center pt-1 xs:pt-1.5 sm:pt-2">
                 <p className="text-[9px] xs:text-[10px] sm:text-xs 
                              text-gray-500 dark:text-gray-400 
                              leading-relaxed">
                   Built with ❤️ by NMITD College Research Team
                 </p>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>

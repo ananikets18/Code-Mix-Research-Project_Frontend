@@ -132,7 +132,6 @@ The frontend communicates with the backend using the following endpoints:
 
 * `POST /analyze` — Run full NLP analysis
 * `POST /translate` — Translation service
-* `POST /convert` — Romanized to native script conversion
 
 ---
 

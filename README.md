@@ -139,6 +139,6 @@ The frontend communicates with the backend using the following endpoints:
 
 * This repository is intended as a **frontend client** for NLP experimentation and visualization.
 * All ML models and inference logic live in the backend.
-* Designed for research, demos, and educational use.
+* Designed for research, demos, and educational use so use it properly.
 
 
